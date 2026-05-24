@@ -1,0 +1,72 @@
+/* style.css - Glassmorphism and Scrollytelling Styling */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+/* Global Styles */
+.stApp {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    color: #f8fafc;
+}
+
+/* Sidebar Glassmorphism */
+[data-testid="stSidebar"] {
+    background: rgba(15, 23, 42, 0.4) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glassmorphic Containers (Cards, Metrics) */
+.glass-container, div[data-testid="metric-container"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-container:hover, div[data-testid="metric-container"]:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Scrollytelling Sections */
+.scroll-section {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 100px;
+    opacity: 0;
+    animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Headings */
+h1, h2, h3 {
+    background: -webkit-linear-gradient(45deg, #3b82f6, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+/* Hide Default Streamlit Branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {background: transparent !important;}
+
+/* Fix for Plotly Chart Backgrounds */
+.js-plotly-plot .plotly .bg {
+    fill: transparent !important;
+}
