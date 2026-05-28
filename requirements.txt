@@ -1,7 +1,12 @@
 pandas
+numpy
 scikit-learn
 streamlit
 plotly
 seaborn
 joblib
-numpy
+scipy
+xgboost
+rapidfuzz
+requests
+beautifulsoup4
