@@ -309,11 +309,8 @@ h1 { font-size: 3rem; color: #00e5ff; }
 
 /* Scrollytelling Sections */
 .scroll-section {
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-bottom: 100px;
+    padding-top: 10px;
+    margin-bottom: 60px;
 }
 
 /* Hide Default Streamlit Branding */

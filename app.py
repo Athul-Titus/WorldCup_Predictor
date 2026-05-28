@@ -20,6 +20,40 @@ def format_money(val):
         return "N/A"
     return f"€{val / 1e6:.1f}M"
 
+# Country name → flag emoji mapping (ISO 3166-1 alpha-2 regional indicators)
+COUNTRY_FLAGS = {
+    'Afghanistan': '🇦🇫', 'Albania': '🇦🇱', 'Algeria': '🇩🇿', 'Angola': '🇦🇴',
+    'Argentina': '🇦🇷', 'Australia': '🇦🇺', 'Austria': '🇦🇹', 'Belgium': '🇧🇪',
+    'Bosnia and Herzegovina': '🇧🇦', 'Brazil': '🇧🇷', 'Cameroon': '🇨🇲',
+    'Canada': '🇨🇦', 'Cape Verde': '🇨🇻', 'Chile': '🇨🇱', 'China PR': '🇨🇳',
+    'Colombia': '🇨🇴', 'Costa Rica': '🇨🇷', 'Croatia': '🇭🇷', 'Curaçao': '🇨🇼',
+    'Czech Republic': '🇨🇿', 'DR Congo': '🇨🇩', 'Denmark': '🇩🇰', 'Ecuador': '🇪🇨',
+    'Egypt': '🇪🇬', 'England': '🏴\U000e0067\U000e0062\U000e0065\U000e006e\U000e0067\U000e007f',
+    'France': '🇫🇷', 'Germany': '🇩🇪', 'Ghana': '🇬🇭', 'Greece': '🇬🇷',
+    'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Iceland': '🇮🇸', 'Iran': '🇮🇷',
+    'Iraq': '🇮🇶', 'Italy': '🇮🇹', 'Ivory Coast': '🇨🇮', 'Japan': '🇯🇵',
+    'Jordan': '🇯🇴', 'Mexico': '🇲🇽', 'Morocco': '🇲🇦', 'Netherlands': '🇳🇱',
+    'New Zealand': '🇳🇿', 'Nigeria': '🇳🇬', 'North Korea': '🇰🇵', 'Norway': '🇳🇴',
+    'Panama': '🇵🇦', 'Paraguay': '🇵🇾', 'Peru': '🇵🇪', 'Poland': '🇵🇱',
+    'Portugal': '🇵🇹', 'Qatar': '🇶🇦', 'Republic of Ireland': '🇮🇪',
+    'Romania': '🇷🇴', 'Russia': '🇷🇺', 'Saudi Arabia': '🇸🇦',
+    'Scotland': '🏴\U000e0067\U000e0062\U000e0073\U000e0063\U000e0074\U000e007f',
+    'Senegal': '🇸🇳', 'Serbia': '🇷🇸', 'Slovakia': '🇸🇰', 'Slovenia': '🇸🇮',
+    'South Africa': '🇿🇦', 'South Korea': '🇰🇷', 'Spain': '🇪🇸', 'Sweden': '🇸🇪',
+    'Switzerland': '🇨🇭', 'Togo': '🇹🇬', 'Trinidad and Tobago': '🇹🇹',
+    'Tunisia': '🇹🇳', 'Turkey': '🇹🇷', 'Ukraine': '🇺🇦',
+    'United Arab Emirates': '🇦🇪', 'United States': '🇺🇸', 'Uruguay': '🇺🇾',
+    'Uzbekistan': '🇺🇿', 'Wales': '🏴\U000e0067\U000e0062\U000e0077\U000e006c\U000e0073\U000e007f',
+}
+
+def get_flag(country):
+    """Return flag emoji for a country name, or a soccer ball fallback."""
+    return COUNTRY_FLAGS.get(country, '⚽')
+
+def team_with_flag(country):
+    """Return 'FLAG Country' string for display in selectbox."""
+    return f"{get_flag(country)} {country}"
+
 import plotly.io as pio
 transparent_template = pio.templates["plotly_dark"]
 transparent_template.layout.paper_bgcolor = "#0a1628"
@@ -84,6 +118,11 @@ if model_accuracy is not None:
     """, unsafe_allow_html=True)
     
 wc_results = results_df[results_df['tournament'].str.contains('FIFA World Cup', case=False, na=False)]
+
+# Filter to only final-tournament matches from 2000 onwards for team selection
+wc_finals = wc_results[(wc_results['tournament'] == 'FIFA World Cup') & (wc_results['date'].dt.year >= 2000)]
+wc_teams = sorted(list(set(wc_finals['home_team'].unique()) | set(wc_finals['away_team'].unique())))
+
 st.sidebar.markdown(f"""
 <div class='sidebar-stat'>
     <div class='sidebar-stat-label'>Total WC Matches</div>
@@ -105,12 +144,18 @@ st.markdown("<div id='match-predictor' class='scroll-section'>", unsafe_allow_ht
 st.markdown("<h1>Match Predictor</h1>", unsafe_allow_html=True)
 
 st.markdown("<div class='glass-container'>", unsafe_allow_html=True)
-teams = sorted(list(set(wc_results['home_team'].unique()) | set(wc_results['away_team'].unique())))
+
+# Build display list with flags
+team_display = [team_with_flag(t) for t in wc_teams]
 col1, col2 = st.columns(2)
 with col1:
-    home_team = st.selectbox("Select Home Team", teams, index=0)
+    home_sel = st.selectbox("Select Home Team", team_display, index=0)
 with col2:
-    away_team = st.selectbox("Select Away Team", teams, index=1 if len(teams) > 1 else 0)
+    away_sel = st.selectbox("Select Away Team", team_display, index=1 if len(team_display) > 1 else 0)
+
+# Extract raw country name (strip flag + space prefix)
+home_team = home_sel.split(' ', 1)[1] if ' ' in home_sel else home_sel
+away_team = away_sel.split(' ', 1)[1] if ' ' in away_sel else away_sel
 
 if home_team == away_team:
     st.error("Home and Away teams must be different!")
@@ -158,15 +203,19 @@ else:
                     p_draw = probs[classes.index(1)] if 1 in classes else 0
                     p_home = probs[classes.index(2)] if 2 in classes else 0
                     
-                    # Layout Hero
+                    # Layout Hero with flags
+                    home_flag = get_flag(home_team)
+                    away_flag = get_flag(away_team)
                     st.markdown(f"""
                     <div class='hero-vs'>
                         <div style='flex:1;'>
+                            <div style='font-size:48px; margin-bottom:8px;'>{home_flag}</div>
                             <div class='team-name'>{home_team}</div>
                             <div class='team-subtitle'>Win Rate: {h_win_rate*100:.1f}%</div>
                         </div>
                         <div class='vs-badge'>VS</div>
                         <div style='flex:1;'>
+                            <div style='font-size:48px; margin-bottom:8px;'>{away_flag}</div>
                             <div class='team-name'>{away_team}</div>
                             <div class='team-subtitle'>Win Rate: {a_win_rate*100:.1f}%</div>
                         </div>
@@ -218,10 +267,12 @@ else:
                             else:
                                 hc = ac = 'h2h-draw'
                                 
+                            h_flag = get_flag(row['home_team'])
+                            a_flag = get_flag(row['away_team'])
                             table_html += f"<tr><td>{row['date'].strftime('%Y-%m-%d')}</td><td>{row['tournament']}</td>"
-                            table_html += f"<td class='{hc}'>{row['home_team']}</td>"
+                            table_html += f"<td class='{hc}'>{h_flag} {row['home_team']}</td>"
                             table_html += f"<td>{row['home_score']} - {row['away_score']}</td>"
-                            table_html += f"<td class='{ac}'>{row['away_team']}</td></tr>"
+                            table_html += f"<td class='{ac}'>{a_flag} {row['away_team']}</td></tr>"
                         table_html += "</table>"
                         st.markdown(table_html, unsafe_allow_html=True)
 
