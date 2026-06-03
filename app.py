@@ -15,6 +15,15 @@ def local_css(file_name):
 
 local_css("style.css")
 
+# Inject KickStats Animated Backgrounds
+st.markdown("""
+<div class='pitch-bg-container'>
+    <div class='pitch-grid'></div>
+    <div class='stadium-light-1'></div>
+    <div class='stadium-light-2'></div>
+</div>
+""", unsafe_allow_html=True)
+
 def format_money(val):
     if pd.isna(val):
         return "N/A"
@@ -56,11 +65,11 @@ def team_with_flag(country):
 
 import plotly.io as pio
 transparent_template = pio.templates["plotly_dark"]
-transparent_template.layout.paper_bgcolor = "#0a1628"
-transparent_template.layout.plot_bgcolor = "#0d1f3c"
-transparent_template.layout.font.color = "#e8f4fd"
-transparent_template.layout.xaxis.gridcolor = "rgba(0,229,255,0.08)"
-transparent_template.layout.yaxis.gridcolor = "rgba(0,229,255,0.08)"
+transparent_template.layout.paper_bgcolor = "rgba(0,0,0,0)"
+transparent_template.layout.plot_bgcolor = "rgba(0,0,0,0)"
+transparent_template.layout.font.color = "#dce4e5"
+transparent_template.layout.xaxis.gridcolor = "rgba(0,218,243,0.1)"
+transparent_template.layout.yaxis.gridcolor = "rgba(0,218,243,0.1)"
 pio.templates.default = transparent_template
 
 @st.cache_data
@@ -297,8 +306,8 @@ with kpi4:
 st.markdown("<div class='glass-container' style='margin-top: 20px;'>", unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
-    # Custom colors: cyan, gold, red, win green
-    colors = ['#00e5ff', '#ffd700', '#ff4757', '#00ff87', '#a855f7']
+    # Custom colors: cyan, gold, error red, win green, purple
+    colors = ['#00daf3', '#ffdb3c', '#ffb4ab', '#00ff87', '#a855f7']
     fig_pie = px.pie(players_df, names='position', hole=0.6, title="Position Distribution",
                      color_discrete_sequence=colors)
     fig_pie.update_traces(textinfo='percent+label', marker=dict(line=dict(color='#0d1f3c', width=2)))
@@ -366,12 +375,12 @@ if search_term:
             fig_radar.add_trace(go.Scatterpolar(
                 r=p_vals, theta=['Goals', 'Assists', 'Minutes', 'Cards', 'Value'],
                 fill='toself', name=player_data['name'], 
-                fillcolor='rgba(0, 229, 255, 0.5)', line_color='#ffd700'
+                fillcolor='rgba(0, 218, 243, 0.5)', line_color='#ffdb3c'
             ))
             fig_radar.add_trace(go.Scatterpolar(
                 r=avg_vals, theta=['Goals', 'Assists', 'Minutes', 'Cards', 'Value'],
                 fill='toself', name=f"Avg {player_data['position']}", 
-                fillcolor='rgba(122, 155, 181, 0.2)', line_color='#7a9bb5', opacity=0.5
+                fillcolor='rgba(132, 147, 150, 0.2)', line_color='#849396', opacity=0.5
             ))
             
             fig_radar.update_layout(polar=dict(radialaxis=dict(visible=False, range=[0, 1]), bgcolor='rgba(0,0,0,0)'),
@@ -495,11 +504,11 @@ if 'cluster_label' in players_df.columns:
     fig_scatter = px.scatter(players_df, x='market_value_in_eur', y='total_goals', 
                              size='total_minutes_played', color='cluster_str',
                              hover_name='name', log_x=True,
-                             color_discrete_sequence=['#00e5ff', '#ffd700', '#ff4757', '#00ff87'])
+                             color_discrete_sequence=['#00daf3', '#ffdb3c', '#ffb4ab', '#00ff87'])
     
     fig_scatter.update_layout(
-        xaxis=dict(gridcolor="rgba(0,229,255,0.2)"),
-        yaxis=dict(gridcolor="rgba(0,229,255,0.2)"),
+        xaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
+        yaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
         margin=dict(l=0, r=0, t=30, b=0),
         legend_title_text='Cluster'
     )
@@ -512,12 +521,12 @@ st.markdown("<h3>Top 10 Most Valuable Players</h3>", unsafe_allow_html=True)
 top10_val = players_df.nlargest(10, 'market_value_in_eur')
 fig_bar = px.bar(top10_val, x='name', y='market_value_in_eur', text_auto='.2s')
 
-fig_bar.update_traces(marker_color='#00e5ff', textfont_color='#ffd700', textposition='outside')
+fig_bar.update_traces(marker_color='#00daf3', textfont_color='#ffdb3c', textposition='outside')
 fig_bar.update_layout(
     xaxis_title="", 
     yaxis_title="Market Value (€)",
-    xaxis=dict(gridcolor="rgba(0,229,255,0.08)"),
-    yaxis=dict(gridcolor="rgba(0,229,255,0.08)"),
+    xaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
+    yaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
     margin=dict(l=0, r=0, t=30, b=0)
 )
 st.plotly_chart(fig_bar, use_container_width=True)
