@@ -106,7 +106,7 @@ def generate_squads():
             ('Andre', MID), ('Gerson', MID), ('Douglas Luiz', MID),
             ('Vinicius Junior', FWD), ('Rodrygo', FWD), ('Endrick', FWD),
             ('Raphinha', FWD), ('Savinho', FWD), ('Gabriel Martinelli', FWD),
-            ('Luiz Henrique', FWD), ('Estevao', FWD), ('Igor Jesus', FWD),
+            ('Luiz Henrique', FWD), ('Estevao', FWD), ('Neymar Jr', FWD),
         ],
         'France': [
             ('Mike Maignan', GK), ('Brice Samba', GK), ('Alphonse Areola', GK),

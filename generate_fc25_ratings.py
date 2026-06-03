@@ -37,6 +37,7 @@ KNOWN_RATINGS = {
     'Thiago Almada': {'overall': 79, 'pace': 78, 'shooting': 72, 'passing': 78, 'dribbling': 83, 'defending': 40, 'physic': 60},
     'Valentin Carboni': {'overall': 76, 'pace': 76, 'shooting': 68, 'passing': 74, 'dribbling': 80, 'defending': 38, 'physic': 55},
     # Brazil
+    'Neymar Jr': {'overall': 87, 'pace': 86, 'shooting': 80, 'passing': 85, 'dribbling': 92, 'defending': 37, 'physic': 60},
     'Vinicius Junior': {'overall': 92, 'pace': 95, 'shooting': 85, 'passing': 80, 'dribbling': 94, 'defending': 30, 'physic': 68},
     'Rodrygo': {'overall': 86, 'pace': 88, 'shooting': 80, 'passing': 78, 'dribbling': 86, 'defending': 40, 'physic': 65},
     'Alisson': {'overall': 89, 'pace': 52, 'shooting': 25, 'passing': 60, 'dribbling': 42, 'defending': 28, 'physic': 82},
