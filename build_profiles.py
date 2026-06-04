@@ -255,9 +255,10 @@ def build_profiles():
         return KNOWN_SOFIFA_IDS.get(player_name, None)
 
     def build_photo_url(player_name, sofifa_id):
-        sid = sofifa_id if sofifa_id else get_sofifa_id(player_name)
-        if sid:
-            return f"https://cdn.sofifa.net/players/{sid}/25_120.png"
+        # Prefer the passed-in id, then look up by name
+        sid = sofifa_id if sofifa_id and not (isinstance(sofifa_id, float) and np.isnan(sofifa_id)) else get_sofifa_id(player_name)
+        if sid and not (isinstance(sid, float) and np.isnan(sid)):
+            return f"https://cdn.sofifa.net/players/{int(sid)}/25_120.png"
         return "https://cdn.sofifa.net/players/0/25_120.png"
 
     squads['sofifa_id'] = squads['player_name'].apply(get_sofifa_id)
