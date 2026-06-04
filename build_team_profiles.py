@@ -1,6 +1,6 @@
 """
-build_team_profiles.py — Build aggregate team profiles from FC25 ratings and squad data.
-Outputs: team_profiles.csv (one row per WC 2026 team)
+build_team_profiles.py — Build aggregate team profiles from master_players.csv.
+Outputs: data/team_profiles.csv (one row per WC 2026 team)
 """
 import pandas as pd
 import numpy as np
@@ -9,19 +9,11 @@ import os
 def build_profiles():
     print("Building team profiles...")
     
-    squads = pd.read_csv('data/wc2026_squads.csv')
-    fc25 = pd.read_csv('data/male_players.csv')
-    
-    # Join squads with FC25 ratings on player name
-    # Since names already match (generated from same source), direct merge works
-    merged = squads.merge(fc25, left_on='player_name', right_on='long_name', how='left')
-    
-    # Fill any missing ratings with position-based defaults
-    for col in ['overall', 'pace', 'shooting', 'passing', 'defending', 'physic', 'dribbling']:
-        merged[col] = merged[col].fillna(merged[col].median())
-    
+    master = pd.read_csv('data/master_players.csv')
+    print(f"  Loaded {len(master)} players from {master['team'].nunique()} teams.")
+
     profiles = []
-    for team, group in merged.groupby('team'):
+    for team, group in master.groupby('team'):
         gk_players = group[group['position'] == 'GK']
         
         profile = {
@@ -35,14 +27,17 @@ def build_profiles():
             'team_avg_dribbling': group['dribbling'].mean(),
             'team_avg_physic': group['physic'].mean(),
             'team_star_rating': group['overall'].max(),
+            'team_total_career_goals': group['total_goals'].sum() if 'total_goals' in group.columns else 0,
+            'team_avg_market_value': group['market_value_in_eur'].mean() if 'market_value_in_eur' in group.columns else 0,
             'team_gk_rating': gk_players['overall'].mean() if len(gk_players) > 0 else group['overall'].mean(),
-            'team_depth_score': group['overall'].std(),  # lower = more balanced squad
+            'team_depth_score': group['overall'].std(),
         }
         profiles.append(profile)
     
     profiles_df = pd.DataFrame(profiles)
-    profiles_df.to_csv('team_profiles.csv', index=False)
-    print(f"Saved team_profiles.csv with {len(profiles_df)} teams")
+    os.makedirs('data', exist_ok=True)
+    profiles_df.to_csv('data/team_profiles.csv', index=False)
+    print(f"  Team profiles built for {len(profiles_df)} teams")
     print(f"\nTop 10 teams by avg overall:")
     print(profiles_df.nlargest(10, 'team_avg_overall')[['team', 'team_avg_overall', 'team_star_rating']].to_string(index=False))
     return profiles_df
