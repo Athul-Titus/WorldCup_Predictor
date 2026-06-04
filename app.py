@@ -226,9 +226,46 @@ def load_data():
 @st.cache_data
 def load_master_players():
     path = 'data/master_players.csv'
-    if os.path.exists(path):
-        return pd.read_csv(path)
-    return pd.DataFrame()
+    if not os.path.exists(path):
+        return pd.DataFrame()
+    df = pd.read_csv(path)
+    # Fix photo URLs: rebuild to ensure correct integer sofifa_id format
+    KNOWN_IDS = {
+        'Lionel Messi': 158023, 'Cristiano Ronaldo': 20801, 'Kylian Mbappe': 231747,
+        'Vinicius Junior': 238794, 'Neymar Jr': 190871, 'Kevin De Bruyne': 192985,
+        'Mohamed Salah': 209331, 'Harry Kane': 202126, 'Luka Modric': 177003,
+        'Thibaut Courtois': 192119, 'Bruno Fernandes': 212198, 'Son Heung-min': 230566,
+        'Pedri': 251776, 'Gavi': 258648, 'Jude Bellingham': 256670,
+        'Jamal Musiala': 272590, 'Bukayo Saka': 246669, 'Phil Foden': 237692,
+        'Rodri': 231866, 'Julian Alvarez': 245369, 'Lautaro Martinez': 240098,
+        'Florian Wirtz': 258923, 'Alisson': 212831, 'Ederson': 217397,
+        'Gianluigi Donnarumma': 230621, 'Manuel Neuer': 167495,
+        'Ruben Dias': 239908, 'Marquinhos': 194958, 'Antonio Rudiger': 205600,
+        'Josko Gvardiol': 261481, 'Achraf Hakimi': 237014, 'Alphonso Davies': 246169,
+        'Marcus Rashford': 231592, 'Declan Rice': 236622, 'Bernardo Silva': 219538,
+        'Victor Osimhen': 235303, 'Darwin Nunez': 247807, 'Rasmus Hojlund': 259667,
+        'Eduardo Camavinga': 261057, 'Aurelien Tchouameni': 258765,
+        'Frenkie de Jong': 234568, 'Cody Gakpo': 253648, 'Lamine Yamal': 278532,
+        'Nico Williams': 262779, 'Moises Caicedo': 261395, 'Luis Diaz': 251596,
+        'Rafael Leao': 245364, 'Joao Felix': 235078, 'Thomas Partey': 210571,
+        'Mohammed Kudus': 261775, 'Andre Onana': 222737, 'Mike Maignan': 222346,
+        'Kim Min-jae': 244698, 'Granit Xhaka': 188229, 'Manuel Akanji': 241245,
+        'Kalidou Koulibaly': 200389, 'Jonathan David': 241640,
+        'Erling Haaland': 239085, 'Marc-Andre ter Stegen': 189521,
+    }
+    def _fix_url(row):
+        sid = row.get('sofifa_id')
+        name = row.get('player_name', '')
+        # Try existing id
+        if sid and not (isinstance(sid, float) and np.isnan(sid)):
+            return f"https://cdn.sofifa.net/players/{int(sid)}/25_120.png"
+        # Try lookup
+        known = KNOWN_IDS.get(name)
+        if known:
+            return f"https://cdn.sofifa.net/players/{known}/25_120.png"
+        return "https://cdn.sofifa.net/players/0/25_120.png"
+    df['photo_url'] = df.apply(_fix_url, axis=1)
+    return df
 
 @st.cache_resource
 def load_model():
