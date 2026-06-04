@@ -273,16 +273,30 @@ def load_model():
         return joblib.load('model.pkl')
     return None
 
+@st.cache_resource
+def load_lineup_models():
+    out_model = joblib.load('lineup_outcome_model.pkl') if os.path.exists('lineup_outcome_model.pkl') else None
+    goals_model = joblib.load('lineup_goals_model.pkl') if os.path.exists('lineup_goals_model.pkl') else None
+    return out_model, goals_model
+
 def load_accuracy():
     if os.path.exists('model_accuracy.txt'):
         with open('model_accuracy.txt') as f:
             return float(f.read().strip())
     return None
 
+def load_lineup_accuracy():
+    if os.path.exists('lineup_model_accuracy.txt'):
+        with open('lineup_model_accuracy.txt') as f:
+            return float(f.read().strip())
+    return None
+
 results_df, features_df, players_df = load_data()
 master_df = load_master_players()
 model = load_model()
+lineup_model, lineup_goals_model = load_lineup_models()
 model_accuracy = load_accuracy()
+lineup_model_accuracy = load_lineup_accuracy()
 
 if results_df.empty or players_df.empty:
     st.warning("Data files not found. Please run the pipeline scripts first.")
@@ -357,7 +371,7 @@ with tab_match:
     if home_team == away_team:
         st.error("⚠️ Home and Away teams must be different!")
     else:
-        if st.button("⚡ SIMULATE MATCH", use_container_width=True, key="sim_btn"):
+        if st.button("⚡ SIMULATE MATCH", width='stretch', key="sim_btn"):
             if model is None or features_df.empty:
                 st.error("Model or features not found.")
             else:
@@ -512,6 +526,24 @@ with tab_lineup:
         </p>
         """, unsafe_allow_html=True)
 
+        if lineup_model_accuracy is not None:
+            st.markdown(f"""
+            <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+              <div class='kpi-card' style="flex:1;min-width:140px;">
+                <div class='kpi-value'>{lineup_model_accuracy*100:.1f}%</div>
+                <div class='kpi-label'>Lineup Model Accuracy</div>
+              </div>
+              <div class='kpi-card' style="flex:1;min-width:140px;">
+                <div class='kpi-value'>{len(squad_teams)}</div>
+                <div class='kpi-label'>WC Squads</div>
+              </div>
+              <div class='kpi-card' style="flex:1;min-width:140px;">
+                <div class='kpi-value'>{len(master_df)}</div>
+                <div class='kpi-label'>Total Squad Players</div>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
         tc1, tc2 = st.columns(2)
         with tc1:
             home_opts = [team_with_flag(t) for t in squad_teams]
@@ -607,7 +639,7 @@ with tab_lineup:
 
                         btn_label = "✓ SELECTED" if is_sel else "SELECT"
                         btn_key   = f"btn_{selected_set_key}_{pname.replace(' ','_')}_{i}"
-                        if st.button(btn_label, key=btn_key, use_container_width=True):
+                        if st.button(btn_label, key=btn_key, width='stretch'):
                             if is_sel:
                                 st.session_state[selected_set_key].discard(pname)
                             elif len(st.session_state[selected_set_key]) < 11:
@@ -705,7 +737,7 @@ with tab_lineup:
         st.markdown("<br>", unsafe_allow_html=True)
         predict_btn = st.button(
             "⚡ PREDICT WITH LINEUP",
-            use_container_width=True,
+            width='stretch',
             disabled=not both_valid,
             key="lineup_predict_btn",
         )
@@ -732,20 +764,79 @@ with tab_lineup:
                 a_phy = lineup_avg(away_sel_players, 'physic')
 
                 # Compute win probability from lineup ratings
-                home_strength = (h_ovr * 0.4 + h_atk * 0.3 + h_def * 0.2 + h_pac * 0.1)
-                away_strength = (a_ovr * 0.4 + a_atk * 0.3 + a_def * 0.2 + a_pac * 0.1)
-                total = home_strength + away_strength
-                draw_factor = 0.22
-                p_home_win = (home_strength / total) * (1 - draw_factor)
-                p_away_win = (away_strength / total) * (1 - draw_factor)
-                p_draw_lu  = draw_factor
+                h_star = float(max([p.get('overall', 70) for p in home_sel_players])) if home_sel_players else 70.0
+                a_star = float(max([p.get('overall', 70) for p in away_sel_players])) if away_sel_players else 70.0
+                
+                h_gks = [p for p in home_sel_players if get_position_group(p.get('position', '')) == 'GK']
+                h_gk = float(h_gks[0].get('overall', 70) if h_gks else 70)
+                a_gks = [p for p in away_sel_players if get_position_group(p.get('position', '')) == 'GK']
+                a_gk = float(a_gks[0].get('overall', 70) if a_gks else 70)
 
-                if p_home_win > p_away_win and p_home_win > p_draw_lu:
-                    result_text, result_cls = f"{lu_home} WINS", "result-win"
-                elif p_away_win > p_home_win and p_away_win > p_draw_lu:
-                    result_text, result_cls = f"{lu_away} WINS", "result-loss"
+                # Get historical win rates for ML model input
+                home_latest = features_df[(features_df['home_team'] == lu_home) | (features_df['away_team'] == lu_home)].tail(1)
+                away_latest = features_df[(features_df['home_team'] == lu_away) | (features_df['away_team'] == lu_away)].tail(1)
+                
+                if not home_latest.empty:
+                    if home_latest['home_team'].values[0] == lu_home:
+                        h_win_rate = float(home_latest['home_win_rate'].values[0])
+                    else:
+                        h_win_rate = float(home_latest['away_win_rate'].values[0])
                 else:
-                    result_text, result_cls = "DRAW", "result-draw"
+                    h_win_rate = 0.33
+                    
+                if not away_latest.empty:
+                    if away_latest['home_team'].values[0] == lu_away:
+                        a_win_rate = float(away_latest['home_win_rate'].values[0])
+                    else:
+                        a_win_rate = float(away_latest['away_win_rate'].values[0])
+                else:
+                    a_win_rate = 0.33
+
+                if lineup_model is not None:
+                    # Prepare input dataframe matching training features
+                    input_data_lu = pd.DataFrame([[
+                        h_ovr, h_atk, h_pas, h_def, h_pac, h_star, h_gk,
+                        a_ovr, a_atk, a_pas, a_def, a_pac, a_star, a_gk,
+                        h_win_rate, a_win_rate
+                    ]], columns=[
+                        'home_avg_overall', 'home_avg_shooting', 'home_avg_passing',
+                        'home_avg_defending', 'home_avg_pace', 'home_star_rating', 'home_gk_rating',
+                        'away_avg_overall', 'away_avg_shooting', 'away_avg_passing',
+                        'away_avg_defending', 'away_avg_pace', 'away_star_rating', 'away_gk_rating',
+                        'home_win_rate', 'away_win_rate'
+                    ])
+                    pred_lu = lineup_model.predict(input_data_lu)[0]
+                    probs_lu = lineup_model.predict_proba(input_data_lu)[0]
+                    classes_lu = list(lineup_model.classes_)
+                    p_away_win = float(probs_lu[classes_lu.index(0)]) if 0 in classes_lu else 0.0
+                    p_draw_lu  = float(probs_lu[classes_lu.index(1)]) if 1 in classes_lu else 0.0
+                    p_home_win = float(probs_lu[classes_lu.index(2)]) if 2 in classes_lu else 0.0
+                    
+                    if pred_lu == 2:
+                        result_text, result_cls = f"{lu_home} WINS", "result-win"
+                    elif pred_lu == 0:
+                        result_text, result_cls = f"{lu_away} WINS", "result-loss"
+                    else:
+                        result_text, result_cls = "DRAW", "result-draw"
+                        
+                    pred_goals = float(lineup_goals_model.predict(input_data_lu)[0]) if lineup_goals_model is not None else None
+                else:
+                    # Fallback to heuristic
+                    home_strength = (h_ovr * 0.4 + h_atk * 0.3 + h_def * 0.2 + h_pac * 0.1)
+                    away_strength = (a_ovr * 0.4 + a_atk * 0.3 + a_def * 0.2 + a_pac * 0.1)
+                    total = home_strength + away_strength
+                    draw_factor = 0.22
+                    p_home_win = (home_strength / total) * (1 - draw_factor)
+                    p_away_win = (away_strength / total) * (1 - draw_factor)
+                    p_draw_lu  = draw_factor
+                    pred_goals = None
+                    
+                    if p_home_win > p_away_win and p_home_win > p_draw_lu:
+                        result_text, result_cls = f"{lu_home} WINS", "result-win"
+                    elif p_away_win > p_home_win and p_away_win > p_draw_lu:
+                        result_text, result_cls = f"{lu_away} WINS", "result-loss"
+                    else:
+                        result_text, result_cls = "DRAW", "result-draw"
 
                 # Hero display
                 st.markdown(f"""
@@ -764,6 +855,15 @@ with tab_lineup:
                 </div>
                 """, unsafe_allow_html=True)
                 st.markdown(f"<div style='text-align:center;margin:10px 0;'><div class='prediction-result {result_cls}'>{result_text}</div></div>", unsafe_allow_html=True)
+                
+                if pred_goals is not None:
+                    st.markdown(f"""
+                    <div style='text-align:center; margin-bottom: 20px;'>
+                      <span style='font-family:"Barlow Condensed",sans-serif; font-size:16px; font-weight:800; color:#ffd700; letter-spacing:1px; background:rgba(255,219,60,0.1); border: 1px solid rgba(255,219,60,0.3); padding:6px 16px; border-radius:4px;'>
+                        ⚽ PREDICTED TOTAL GOALS: {pred_goals:.2f}
+                      </span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                 # Confidence bars
                 st.markdown(f"""
@@ -811,7 +911,7 @@ with tab_lineup:
                     font_color='#dce4e5',
                     legend=dict(font=dict(family='Barlow Condensed', size=14)),
                 )
-                st.plotly_chart(fig_r, use_container_width=True)
+                st.plotly_chart(fig_r, width='stretch')
 
                 # Stat breakdown cards
                 st.markdown("<h3>Lineup Stat Breakdown</h3>", unsafe_allow_html=True)
@@ -864,12 +964,12 @@ with tab_players:
         fig_pie = px.pie(players_df, names='position', hole=0.6, title="Position Distribution",
                          color_discrete_sequence=colors)
         fig_pie.update_traces(textinfo='percent+label', marker=dict(line=dict(color='#0d1f3c', width=2)))
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width='stretch')
     with c2:
         if 'market_value_in_eur' in players_df.columns:
             fig_hist = px.histogram(players_df, x='market_value_in_eur', log_y=True, nbins=50,
                                     title="Market Value Distribution", color_discrete_sequence=['#00daf3'])
-            st.plotly_chart(fig_hist, use_container_width=True)
+            st.plotly_chart(fig_hist, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<h3 style='margin-top:24px;'>Search a Player</h3>", unsafe_allow_html=True)
@@ -937,7 +1037,7 @@ with tab_players:
                     showlegend=True, margin=dict(t=20,b=20,l=20,r=20),
                     paper_bgcolor='rgba(0,0,0,0)', font_color='#e8f4fd',
                 )
-                st.plotly_chart(fig_radar, use_container_width=True)
+                st.plotly_chart(fig_radar, width='stretch')
             st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -964,17 +1064,17 @@ with tab_cluster:
         cluster_summary = players_df.groupby('cluster_label')[['total_goals','total_assists','total_minutes_played','market_value_in_eur']].mean().reset_index()
         total_players   = len(players_df)
         cluster_meta    = {
-            0: {"icon":"⭐","name":"Elite Superstars","desc":"The highest-performing and most valuable players. They consistently play high minutes, score goals, and command premium fees.","insight":"Target as marquee signings. They guarantee output but require massive transfer budgets."},
-            1: {"icon":"⚔️","name":"First-Team Regulars","desc":"Dependable starters with significant minutes. They form the backbone of the squad.","insight":"High-value targets for squad depth and consistent performance across a long season."},
-            2: {"icon":"🛡️","name":"Squad Players","desc":"Players with moderate minutes and lower market values — often younger prospects or rotational options.","insight":"Scout for hidden gems. High potential ROI if they break into the starting XI."},
-            3: {"icon":"⏳","name":"Fringe/Reserves","desc":"Minimal minutes, low output, and low market value. Typically youth academy products or deep reserves.","insight":"Useful for filling rosters, but unlikely to make an immediate impact."},
+            "Clinical Striker": {"icon":"⭐","name":"Clinical Striker","desc":"High-efficiency goal scorers who convert chances at a premium rate. They are the primary offensive focal point.","insight":"Essential for winning tight games. Ensure they have service from playmakers."},
+            "Playmaker": {"icon":"⚔️","name":"Playmaker","desc":"Creative engine room players with high assist rates. They excel at key passes and final-third creation.","insight":"Pair with clinical strikers to maximize offensive output."},
+            "Workhorse": {"icon":"🛡️","name":"Workhorse","desc":"High-minute, high-durability players. They form the physical and structural spine of the team.","insight":"Excellent for maintaining stability and structural integrity over 90 minutes."},
+            "Rotation Player": {"icon":"⏳","name":"Rotation Player","desc":"Valuable depth options with moderate output and minutes. Useful for squad rotation and load management.","insight":"Good for squad depth, but unlikely to carry the team on their own."},
         }
-        for i in range(4):
-            if i not in cluster_summary['cluster_label'].values: continue
-            c_data  = cluster_summary[cluster_summary['cluster_label'] == i].iloc[0]
-            c_count = len(players_df[players_df['cluster_label'] == i])
+        for label in ["Clinical Striker", "Playmaker", "Workhorse", "Rotation Player"]:
+            if label not in cluster_summary['cluster_label'].values: continue
+            c_data  = cluster_summary[cluster_summary['cluster_label'] == label].iloc[0]
+            c_count = len(players_df[players_df['cluster_label'] == label])
             c_pct   = (c_count / total_players) * 100
-            meta    = cluster_meta.get(i, {"icon":"👤","name":f"Cluster {i}","desc":"N/A","insight":"N/A"})
+            meta    = cluster_meta.get(label, {"icon":"👤","name":label,"desc":"N/A","insight":"N/A"})
             st.markdown(f"""
             <div class='cluster-panel'>
               <div class='cluster-header'>
@@ -1014,7 +1114,7 @@ with tab_charts:
             xaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
             yaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
             margin=dict(l=0,r=0,t=30,b=0), legend_title_text='Cluster')
-        st.plotly_chart(fig_sc, use_container_width=True)
+        st.plotly_chart(fig_sc, width='stretch')
 
     st.markdown("<hr style='border:none;border-top:1px solid rgba(0,229,255,0.15);margin:24px 0;'>", unsafe_allow_html=True)
 
@@ -1027,7 +1127,7 @@ with tab_charts:
         xaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
         yaxis=dict(gridcolor="rgba(0,218,243,0.1)"),
         margin=dict(l=0,r=0,t=30,b=0))
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, width='stretch')
 
     st.markdown("<hr style='border:none;border-top:1px solid rgba(0,229,255,0.15);margin:24px 0;'>", unsafe_allow_html=True)
 
@@ -1047,6 +1147,6 @@ with tab_charts:
             margin=dict(l=0,r=60,t=20,b=0),
             showlegend=False, coloraxis_showscale=False,
         )
-        st.plotly_chart(fig_team, use_container_width=True)
+        st.plotly_chart(fig_team, width='stretch')
 
     st.markdown("</div>", unsafe_allow_html=True)

@@ -26,7 +26,7 @@ def build_training_data():
     wc = wc[wc['date'].dt.year >= 2000]  # Modern era
     
     # Load team profiles
-    profiles = pd.read_csv('team_profiles.csv')
+    profiles = pd.read_csv('data/team_profiles.csv')
     
     # Load the features.csv for historical win rates
     features = pd.read_csv('features.csv')
