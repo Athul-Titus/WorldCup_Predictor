@@ -3,6 +3,7 @@ import numpy as np
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, classification_report
+from imblearn.over_sampling import SMOTE
 import joblib
 import os
 import sys
@@ -66,14 +67,15 @@ def train_match_model():
         eval_metric='mlogloss',
     )
 
-    # Use sample weights in training
-    if 'sample_weight' in df_clean.columns:
-        w_train, w_test = train_test_split(
-            df_clean['sample_weight'].values, test_size=0.2, random_state=42
-        )
-        model.fit(X_train, y_train, sample_weight=w_train)
-    else:
-        model.fit(X_train, y_train)
+    # Balance classes with SMOTE
+    print("\nBalancing classes with SMOTE...")
+    smote = SMOTE(random_state=42)
+    X_train_sm, y_train_sm = smote.fit_resample(X_train, y_train)
+    print(f"  Before SMOTE: {np.bincount(y_train)}")
+    print(f"  After SMOTE:  {np.bincount(y_train_sm)}")
+
+    # Use sample weights in training (if balancing, we just use the resampled data directly)
+    model.fit(X_train_sm, y_train_sm)
 
     # Evaluate
     y_pred = model.predict(X_test)

@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, mean_absolute_error
 from xgboost import XGBClassifier
 from sklearn.ensemble import GradientBoostingRegressor
+from imblearn.over_sampling import SMOTE
 import joblib
 import os
 import sys
@@ -152,7 +153,14 @@ def train_models():
         min_child_weight=3,
         random_state=42, use_label_encoder=False, eval_metric='mlogloss'
     )
-    xgb_model.fit(X_train, y_train)
+    
+    print("  Balancing classes with SMOTE...")
+    smote = SMOTE(random_state=42)
+    X_train_sm, y_train_sm = smote.fit_resample(X_train, y_train)
+    print(f"    Before SMOTE: {np.bincount(y_train)}")
+    print(f"    After SMOTE:  {np.bincount(y_train_sm)}")
+    
+    xgb_model.fit(X_train_sm, y_train_sm)
     y_pred = xgb_model.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {acc:.4f}")
