@@ -4,6 +4,7 @@ Contains ONLY helper functions. No Streamlit pages.
 """
 import pandas as pd
 import numpy as np
+import urllib.parse
 
 
 # ── POSITION HELPERS ─────────────────────────────────────────────────────────
@@ -106,7 +107,9 @@ def render_player_card(player_row, is_selected: bool = False, card_id: str = "")
     name       = str(p.get("player_name", "Unknown")).upper()
     pos_raw    = str(p.get("position", "MID"))
     pos_group  = get_position_group(pos_raw)
-    photo_url  = p.get("photo_url") or "https://cdn.sofifa.net/players/0/25_120.png"
+    # Use UI Avatars as default (always works, no broken images)
+    _default_avatar = f"https://ui-avatars.com/api/?name={urllib.parse.quote(name)}&background=0d1f3c&color=00e5ff&size=120&bold=true&rounded=true"
+    photo_url  = p.get("photo_url") or _default_avatar
 
     # ── FC25 stats ──────────────────────────────────────────────────────────
     def _stat(key, default=0):
@@ -171,7 +174,7 @@ def render_player_card(player_row, is_selected: bool = False, card_id: str = "")
 ">
   <!-- Photo -->
   <img src="{photo_url}"
-       onerror="this.src='https://cdn.sofifa.net/players/0/25_120.png'"
+       onerror="this.src='https://ui-avatars.com/api/?name={name}&background=0d1f3c&color=00e5ff&size=120&bold=true&rounded=true'"
        style="width:80px;height:80px;border-radius:50%;object-fit:cover;
               border:3px solid {ring_color};display:block;margin:0 auto 8px;
               background:#151d1e;">
