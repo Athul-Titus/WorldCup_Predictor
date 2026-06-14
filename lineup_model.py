@@ -51,27 +51,16 @@ def build_training_data():
     matches['total_goals'] = matches['home_score'] + matches['away_score']
 
     # Merge with team profiles
-    profile_cols = [c for c in profiles.columns if c != 'team']
-
+    # Merge with team profiles for Home Team
     matches = matches.merge(profiles, left_on='home_team', right_on='team', how='left')
-    rename_home = {c: f'home_{c}' if not c.startswith('team_') else c.replace('team_', 'home_')
-                   for c in profile_cols}
-    rename_home = {c: c.replace('team_', 'home_') for c in profile_cols}
+    rename_home = {c: c.replace('team_', 'home_') for c in profiles.columns if c != 'team'}
     matches = matches.rename(columns=rename_home)
     matches = matches.drop(columns=['team'], errors='ignore')
 
-    matches = matches.merge(profiles, left_on='away_team', right_on='team', how='left',
-                            suffixes=('', '_away_dup'))
-    rename_away = {c: c.replace('team_', 'away_') for c in profile_cols}
-    # Handle the duplicate columns from second merge
-    for orig_col in profile_cols:
-        dup_col = orig_col + '_away_dup'
-        away_name = orig_col.replace('team_', 'away_')
-        if dup_col in matches.columns:
-            matches[away_name] = matches[dup_col]
-            matches = matches.drop(columns=[dup_col], errors='ignore')
-        elif orig_col in matches.columns and away_name not in matches.columns:
-            pass  # Already handled
+    # Merge with team profiles for Away Team
+    matches = matches.merge(profiles, left_on='away_team', right_on='team', how='left')
+    rename_away = {c: c.replace('team_', 'away_') for c in profiles.columns if c != 'team'}
+    matches = matches.rename(columns=rename_away)
     matches = matches.drop(columns=['team'], errors='ignore')
 
     # Add difference features
