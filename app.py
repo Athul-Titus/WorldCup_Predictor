@@ -368,19 +368,27 @@ with tab_match:
                             h_win_rate = home_latest['home_win_rate'].values[0]
                             h_gs = home_latest['home_avg_goals_scored'].values[0]
                             h_gc = home_latest['home_avg_goals_conceded'].values[0]
+                            h_form = home_latest['home_form'].values[0] if 'home_form' in home_latest.columns else 1.0
+                            h_gdiff = home_latest['home_goal_diff'].values[0] if 'home_goal_diff' in home_latest.columns else 0.0
                         else:
                             h_win_rate = home_latest['away_win_rate'].values[0]
                             h_gs = home_latest['away_avg_goals_scored'].values[0]
                             h_gc = home_latest['away_avg_goals_conceded'].values[0]
+                            h_form = home_latest['away_form'].values[0] if 'away_form' in home_latest.columns else 1.0
+                            h_gdiff = home_latest['away_goal_diff'].values[0] if 'away_goal_diff' in home_latest.columns else 0.0
 
                         if away_latest['home_team'].values[0] == away_team:
                             a_win_rate = away_latest['home_win_rate'].values[0]
                             a_gs = away_latest['home_avg_goals_scored'].values[0]
                             a_gc = away_latest['home_avg_goals_conceded'].values[0]
+                            a_form = away_latest['home_form'].values[0] if 'home_form' in away_latest.columns else 1.0
+                            a_gdiff = away_latest['home_goal_diff'].values[0] if 'home_goal_diff' in away_latest.columns else 0.0
                         else:
                             a_win_rate = away_latest['away_win_rate'].values[0]
                             a_gs = away_latest['away_avg_goals_scored'].values[0]
                             a_gc = away_latest['away_avg_goals_conceded'].values[0]
+                            a_form = away_latest['away_form'].values[0] if 'away_form' in away_latest.columns else 1.0
+                            a_gdiff = away_latest['away_goal_diff'].values[0] if 'away_goal_diff' in away_latest.columns else 0.0
 
                         h2h = wc_results[
                             ((wc_results['home_team'] == home_team) & (wc_results['away_team'] == away_team)) |
@@ -396,10 +404,11 @@ with tab_match:
                         else:
                             h2h_rate = features_df['head_to_head_home_win_rate'].mean()
 
-                        input_data = pd.DataFrame([[h_win_rate, a_win_rate, h_gs, h_gc, a_gs, a_gc, h2h_rate]],
+                        input_data = pd.DataFrame([[h_win_rate, a_win_rate, h_gs, h_gc, a_gs, a_gc, h2h_rate, h_form, a_form, h_gdiff, a_gdiff]],
                                                   columns=['home_win_rate','away_win_rate','home_avg_goals_scored',
                                                            'home_avg_goals_conceded','away_avg_goals_scored',
-                                                           'away_avg_goals_conceded','head_to_head_home_win_rate'])
+                                                           'away_avg_goals_conceded','head_to_head_home_win_rate',
+                                                           'home_form', 'away_form', 'home_goal_diff', 'away_goal_diff'])
                         pred  = model.predict(input_data)[0]
                         probs = model.predict_proba(input_data)[0]
                         classes = list(model.classes_)
@@ -779,13 +788,16 @@ with tab_lineup:
                     input_data_lu = pd.DataFrame([[
                         h_ovr, h_atk, h_pas, h_def, h_pac, h_star, h_gk,
                         a_ovr, a_atk, a_pas, a_def, a_pac, a_star, a_gk,
-                        h_win_rate, a_win_rate
+                        h_win_rate, a_win_rate,
+                        (h_ovr - a_ovr), (h_atk - a_atk), (h_pas - a_pas), (h_def - a_def), (h_pac - a_pac)
                     ]], columns=[
                         'home_avg_overall', 'home_avg_shooting', 'home_avg_passing',
                         'home_avg_defending', 'home_avg_pace', 'home_star_rating', 'home_gk_rating',
                         'away_avg_overall', 'away_avg_shooting', 'away_avg_passing',
                         'away_avg_defending', 'away_avg_pace', 'away_star_rating', 'away_gk_rating',
-                        'home_win_rate', 'away_win_rate'
+                        'home_win_rate', 'away_win_rate',
+                        'diff_avg_overall', 'diff_avg_shooting', 'diff_avg_passing',
+                        'diff_avg_defending', 'diff_avg_pace'
                     ])
                     pred_lu = lineup_model.predict(input_data_lu)[0]
                     probs_lu = lineup_model.predict_proba(input_data_lu)[0]
