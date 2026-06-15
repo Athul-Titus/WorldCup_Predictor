@@ -8,8 +8,8 @@ A comparison of the actual results from the first 12 matches of the FIFA World C
 
 | Model | Correct Predictions | Total Matches | Accuracy |
 |---|---|---|---|
-| **Match Predictor (Historical ML)** | 7 | 12 | 58.3% |
-| **Lineup Predictor (FC25 starting 11)** | 5 | 12 | 41.7% |
+| **Match Predictor (Historical ML)** | 5 | 12 | 41.7% |
+| **Lineup Predictor (FC25 starting 11)** | 6 | 12 | 50.0% |
 
 ---
 
@@ -17,18 +17,18 @@ A comparison of the actual results from the first 12 matches of the FIFA World C
 
 | Date | Match | Actual Score | Actual Outcome | Match Predictor | Match Pred Status | Lineup Predictor | Lineup Pred Status | Est. Goals |
 | :--- | :--- | :---: | :---: | :--- | :---: | :--- | :---: | :---: |
-| June 11 | Mexico vs South Africa | 2-0 | Home Win | Draw (54.6%) | ❌ WRONG | Draw (76.0%) | ❌ WRONG | 4.18 |
-| June 11 | South Korea vs Czech Republic | 2-1 | Home Win | Draw (38.9%) | ❌ WRONG | Draw (39.6%) | ❌ WRONG | 4.33 |
-| June 12 | Canada vs Bosnia and Herzegovina | 1-1 | Draw | Draw (37.7%) | ✅ OK | Draw (48.6%) | ✅ OK | 1.21 |
-| June 12 | United States vs Paraguay | 4-1 | Home Win | Home Win (44.2%) | ✅ OK | Home Win (50.9%) | ✅ OK | 2.76 |
-| June 13 | Qatar vs Switzerland | 1-1 | Draw | Home Win (43.3%) | ❌ WRONG | Away Win (46.9%) | ❌ WRONG | 2.88 |
-| June 13 | Brazil vs Morocco | 1-1 | Draw | Home Win (38.8%) | ❌ WRONG | Home Win (70.0%) | ❌ WRONG | 4.66 |
-| June 13 | Scotland vs Haiti | 1-0 | Home Win | Home Win (44.4%) | ✅ OK | Home Win (47.0%) | ✅ OK | 2.52 |
-| June 13 | Australia vs Turkey | 2-0 | Home Win | Home Win (43.2%) | ✅ OK | Away Win (91.9%) | ❌ WRONG | 3.72 |
-| June 14 | Germany vs Curaçao | 7-1 | Home Win | Home Win (71.0%) | ✅ OK | Home Win (57.8%) | ✅ OK | 3.03 |
-| June 14 | Netherlands vs Japan | 2-2 | Draw | Draw (45.2%) | ✅ OK | Home Win (63.9%) | ❌ WRONG | 2.86 |
-| June 14 | Sweden vs Tunisia | 5-1 | Home Win | Draw (38.7%) | ❌ WRONG | Home Win (55.8%) | ✅ OK | 2.35 |
-| June 14 | Ivory Coast vs Ecuador | 1-0 | Home Win | Home Win (50.4%) | ✅ OK | Draw (52.9%) | ❌ WRONG | 2.30 |
+| June 11 | Mexico vs South Africa | 2-0 | Home Win | Draw (37.9%) | ❌ WRONG | Home Win (38.3%) | ✅ OK | 3.58 |
+| June 11 | South Korea vs Czech Republic | 2-1 | Home Win | Home Win (55.7%) | ✅ OK | Home Win (58.6%) | ✅ OK | 3.42 |
+| June 12 | Canada vs Bosnia and Herzegovina | 1-1 | Draw | Home Win (67.2%) | ❌ WRONG | Home Win (54.7%) | ❌ WRONG | 1.17 |
+| June 12 | United States vs Paraguay | 4-1 | Home Win | Home Win (52.4%) | ✅ OK | Home Win (45.6%) | ✅ OK | 2.36 |
+| June 13 | Qatar vs Switzerland | 1-1 | Draw | Away Win (44.6%) | ❌ WRONG | Home Win (45.6%) | ❌ WRONG | 3.16 |
+| June 13 | Brazil vs Morocco | 1-1 | Draw | Away Win (40.7%) | ❌ WRONG | Home Win (41.3%) | ❌ WRONG | 4.50 |
+| June 13 | Scotland vs Haiti | 1-0 | Home Win | Away Win (46.3%) | ❌ WRONG | Home Win (42.8%) | ✅ OK | 2.61 |
+| June 13 | Australia vs Turkey | 2-0 | Home Win | Home Win (55.2%) | ✅ OK | Away Win (43.3%) | ❌ WRONG | 3.67 |
+| June 14 | Germany vs Curaçao | 7-1 | Home Win | Home Win (52.3%) | ✅ OK | Home Win (53.9%) | ✅ OK | 3.43 |
+| June 14 | Netherlands vs Japan | 2-2 | Draw | Home Win (44.6%) | ❌ WRONG | Home Win (60.1%) | ❌ WRONG | 2.77 |
+| June 14 | Sweden vs Tunisia | 5-1 | Home Win | Away Win (42.5%) | ❌ WRONG | Home Win (59.6%) | ✅ OK | 2.79 |
+| June 14 | Ivory Coast vs Ecuador | 1-0 | Home Win | Home Win (61.4%) | ✅ OK | Away Win (50.6%) | ❌ WRONG | 3.17 |
 
 ---
 
