@@ -3,7 +3,6 @@ import numpy as np
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, classification_report
-from imblearn.over_sampling import SMOTE
 import joblib
 import os
 import sys
@@ -35,7 +34,7 @@ def train_match_model():
     feature_cols = [c for c in feature_cols if c in df.columns]
 
     # Drop rows with NaN in features
-    df_clean = df.dropna(subset=feature_cols + ['outcome'])
+    df_clean = df.dropna(subset=feature_cols + ['outcome']).reset_index(drop=True)
 
     X = df_clean[feature_cols]
     y = df_clean['outcome'].astype(int)
@@ -48,17 +47,15 @@ def train_match_model():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     if weights is not None:
-        w_train = weights[X_train.index - X_train.index.min()] if hasattr(X_train, 'index') else None
-        _, w_test_arr = train_test_split(weights, test_size=0.2, random_state=42)
-        w_train_arr = weights[:len(X_train)]
+        w_train = weights[X_train.index]
     else:
-        w_train_arr = None
+        w_train = None
 
     # Train XGBoost
     model = XGBClassifier(
-        n_estimators=400,
-        max_depth=6,
-        learning_rate=0.08,
+        n_estimators=150,
+        max_depth=4,
+        learning_rate=0.05,
         subsample=0.8,
         colsample_bytree=0.8,
         min_child_weight=3,
@@ -67,15 +64,12 @@ def train_match_model():
         eval_metric='mlogloss',
     )
 
-    # Balance classes with SMOTE
-    print("\nBalancing classes with SMOTE...")
-    smote = SMOTE(random_state=42)
-    X_train_sm, y_train_sm = smote.fit_resample(X_train, y_train)
-    print(f"  Before SMOTE: {np.bincount(y_train)}")
-    print(f"  After SMOTE:  {np.bincount(y_train_sm)}")
-
-    # Use sample weights in training (if balancing, we just use the resampled data directly)
-    model.fit(X_train_sm, y_train_sm)
+    # Use sample weights in training directly
+    if w_train is not None:
+        print("Training with sample weights...")
+        model.fit(X_train, y_train, sample_weight=w_train)
+    else:
+        model.fit(X_train, y_train)
 
     # Evaluate
     y_pred = model.predict(X_test)

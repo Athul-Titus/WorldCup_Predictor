@@ -70,13 +70,8 @@ def prepare_match_data():
     # We'll use a dictionary-based approach with cumulative stats
 
     # Initialize team stats tracker
-    team_wins = {}
-    team_matches = {}
-    team_goals_scored = {}
-    team_goals_conceded = {}
-    team_recent_form = {}  # list of last N results
-
-    FORM_WINDOW = 10
+    team_history = {} # team_name -> {'wins': [], 'goals_scored': [], 'goals_conceded': [], 'pts': []}
+    ROLLING_WINDOW = 30
 
     home_win_rates = np.full(len(df), 0.33)
     away_win_rates = np.full(len(df), 0.33)
@@ -97,59 +92,50 @@ def prepare_match_data():
         as_ = row['away_score']
 
         # ── Read current stats BEFORE updating ───────────────────────────────
-        if ht in team_matches and team_matches[ht] >= 3:
-            n = team_matches[ht]
-            home_win_rates[i] = team_wins.get(ht, 0) / n
-            home_avg_gf[i] = team_goals_scored[ht] / n
-            home_avg_ga[i] = team_goals_conceded[ht] / n
-            home_gdiff[i] = (team_goals_scored[ht] - team_goals_conceded[ht]) / n
-            # Form from recent results
-            recent = team_recent_form.get(ht, [])
-            if recent:
-                home_form[i] = sum(recent[-5:]) / min(len(recent), 5)
+        if ht in team_history and len(team_history[ht]['wins']) >= 3:
+            hist = team_history[ht]
+            n = len(hist['wins'])
+            home_win_rates[i] = sum(hist['wins']) / n
+            home_avg_gf[i] = sum(hist['goals_scored']) / n
+            home_avg_ga[i] = sum(hist['goals_conceded']) / n
+            home_gdiff[i] = (sum(hist['goals_scored']) - sum(hist['goals_conceded'])) / n
+            home_form[i] = sum(hist['pts'][-5:]) / min(n, 5)
 
-        if at in team_matches and team_matches[at] >= 3:
-            n = team_matches[at]
-            away_win_rates[i] = team_wins.get(at, 0) / n
-            away_avg_gf[i] = team_goals_scored[at] / n
-            away_avg_ga[i] = team_goals_conceded[at] / n
-            away_gdiff[i] = (team_goals_scored[at] - team_goals_conceded[at]) / n
-            recent = team_recent_form.get(at, [])
-            if recent:
-                away_form[i] = sum(recent[-5:]) / min(len(recent), 5)
+        if at in team_history and len(team_history[at]['wins']) >= 3:
+            hist = team_history[at]
+            n = len(hist['wins'])
+            away_win_rates[i] = sum(hist['wins']) / n
+            away_avg_gf[i] = sum(hist['goals_scored']) / n
+            away_avg_ga[i] = sum(hist['goals_conceded']) / n
+            away_gdiff[i] = (sum(hist['goals_scored']) - sum(hist['goals_conceded'])) / n
+            away_form[i] = sum(hist['pts'][-5:]) / min(n, 5)
 
         # ── Update stats AFTER reading ───────────────────────────────────────
         # Home team
-        team_matches[ht] = team_matches.get(ht, 0) + 1
-        team_goals_scored[ht] = team_goals_scored.get(ht, 0) + hs
-        team_goals_conceded[ht] = team_goals_conceded.get(ht, 0) + as_
-
-        if hs > as_:
-            team_wins[ht] = team_wins.get(ht, 0) + 1
-            pts = 3
-        elif hs == as_:
-            pts = 1
-        else:
-            pts = 0
-        team_recent_form.setdefault(ht, []).append(pts)
-        if len(team_recent_form[ht]) > FORM_WINDOW:
-            team_recent_form[ht] = team_recent_form[ht][-FORM_WINDOW:]
+        if ht not in team_history:
+            team_history[ht] = {'wins': [], 'goals_scored': [], 'goals_conceded': [], 'pts': []}
+        h_win = 1 if hs > as_ else 0
+        h_pts = 3 if hs > as_ else (1 if hs == as_ else 0)
+        team_history[ht]['wins'].append(h_win)
+        team_history[ht]['goals_scored'].append(hs)
+        team_history[ht]['goals_conceded'].append(as_)
+        team_history[ht]['pts'].append(h_pts)
+        for k in team_history[ht]:
+            if len(team_history[ht][k]) > ROLLING_WINDOW:
+                team_history[ht][k] = team_history[ht][k][-ROLLING_WINDOW:]
 
         # Away team
-        team_matches[at] = team_matches.get(at, 0) + 1
-        team_goals_scored[at] = team_goals_scored.get(at, 0) + as_
-        team_goals_conceded[at] = team_goals_conceded.get(at, 0) + hs
-
-        if as_ > hs:
-            team_wins[at] = team_wins.get(at, 0) + 1
-            pts_a = 3
-        elif hs == as_:
-            pts_a = 1
-        else:
-            pts_a = 0
-        team_recent_form.setdefault(at, []).append(pts_a)
-        if len(team_recent_form[at]) > FORM_WINDOW:
-            team_recent_form[at] = team_recent_form[at][-FORM_WINDOW:]
+        if at not in team_history:
+            team_history[at] = {'wins': [], 'goals_scored': [], 'goals_conceded': [], 'pts': []}
+        a_win = 1 if as_ > hs else 0
+        a_pts = 3 if as_ > hs else (1 if hs == as_ else 0)
+        team_history[at]['wins'].append(a_win)
+        team_history[at]['goals_scored'].append(as_)
+        team_history[at]['goals_conceded'].append(hs)
+        team_history[at]['pts'].append(a_pts)
+        for k in team_history[at]:
+            if len(team_history[at][k]) > ROLLING_WINDOW:
+                team_history[at][k] = team_history[at][k][-ROLLING_WINDOW:]
 
         if i % 10000 == 0 and i > 0:
             print(f"    {i}/{len(df)} matches processed...")
