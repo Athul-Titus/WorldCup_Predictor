@@ -252,13 +252,48 @@ def load_master_players():
 @st.cache_resource
 def load_model():
     if os.path.exists('model.pkl'):
-        return joblib.load('model.pkl')
+        try:
+            return joblib.load('model.pkl')
+        except Exception:
+            st.warning("⚠️ Pre-trained match model has a version mismatch. Retraining from data (~30s)...")
+            try:
+                from train_model import train_match_model as _train
+                _train()  # saves model.pkl
+                return joblib.load('model.pkl')
+            except Exception as e2:
+                st.error(f"Retraining also failed: {e2}")
+                return None
     return None
 
 @st.cache_resource
 def load_lineup_models():
-    out_model = joblib.load('lineup_outcome_model.pkl') if os.path.exists('lineup_outcome_model.pkl') else None
-    goals_model = joblib.load('lineup_goals_model.pkl') if os.path.exists('lineup_goals_model.pkl') else None
+    out_model = None
+    goals_model = None
+
+    # --- Load or retrain lineup outcome model ---
+    if os.path.exists('lineup_outcome_model.pkl'):
+        try:
+            out_model = joblib.load('lineup_outcome_model.pkl')
+        except Exception:
+            out_model = None  # will retrain below
+
+    # --- Load or retrain lineup goals model ---
+    if os.path.exists('lineup_goals_model.pkl'):
+        try:
+            goals_model = joblib.load('lineup_goals_model.pkl')
+        except Exception:
+            goals_model = None  # will retrain below
+
+    # --- Fallback: retrain both if either failed ---
+    if out_model is None or goals_model is None:
+        st.warning("⚠️ Pre-trained lineup models need retraining (version mismatch). Retraining from data... ~30s.")
+        try:
+            from lineup_model import train_models as _train_lineup
+            out_model, goals_model, _ = _train_lineup()
+        except Exception as e:
+            st.error(f"Lineup model retraining failed: {e}")
+            out_model, goals_model = None, None
+
     return out_model, goals_model
 
 def load_accuracy():
