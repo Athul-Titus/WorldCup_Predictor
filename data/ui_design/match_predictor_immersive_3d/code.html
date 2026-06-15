@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KickStats Command Center</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#9cf0ff",
+                      "inverse-on-surface": "#2a3233",
+                      "on-tertiary-fixed": "#251a00",
+                      "inverse-surface": "#dce4e5",
+                      "on-tertiary": "#3e2e00",
+                      "on-secondary": "#3a3000",
+                      "surface-container-low": "#151d1e",
+                      "surface-tint": "#00daf3",
+                      "on-primary-container": "#00626e",
+                      "on-primary": "#00363d",
+                      "on-primary-fixed-variant": "#004f58",
+                      "surface-dim": "#0d1516",
+                      "primary-fixed-dim": "#00daf3",
+                      "on-surface-variant": "#bac9cc",
+                      "surface-container-high": "#242b2d",
+                      "on-secondary-container": "#725f00",
+                      "on-secondary-fixed": "#221b00",
+                      "error-container": "#93000a",
+                      "surface-container-lowest": "#080f11",
+                      "surface-container-highest": "#2e3638",
+                      "inverse-primary": "#006875",
+                      "error": "#ffb4ab",
+                      "background": "#0d1516",
+                      "surface-bright": "#333a3c",
+                      "on-tertiary-container": "#6f5500",
+                      "primary-container": "#00e5ff",
+                      "outline": "#849396",
+                      "secondary-fixed": "#ffe16d",
+                      "secondary-container": "#ffdb3c",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed": "#ffdf96",
+                      "surface": "#0d1516",
+                      "secondary": "#fff9ef",
+                      "on-error": "#690005",
+                      "surface-container": "#192122",
+                      "surface-variant": "#2e3638",
+                      "tertiary-fixed-dim": "#f3bf26",
+                      "on-surface": "#dce4e5",
+                      "tertiary-container": "#fec931",
+                      "tertiary": "#ffeac0",
+                      "on-background": "#dce4e5",
+                      "secondary-fixed-dim": "#e9c400",
+                      "on-secondary-fixed-variant": "#544600",
+                      "outline-variant": "#3b494c",
+                      "primary": "#c3f5ff",
+                      "on-primary-fixed": "#001f24",
+                      "on-tertiary-fixed-variant": "#594400"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "32px",
+                      "base": "8px",
+                      "margin-mobile": "16px",
+                      "container-max": "1280px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-md": [
+                              "Archivo Narrow"
+                      ],
+                      "headline-lg": [
+                              "Archivo Narrow"
+                      ],
+                      "stat-huge": [
+                              "Archivo Narrow"
+                      ],
+                      "display-lg": [
+                              "Archivo Narrow"
+                      ],
+                      "label-caps": [
+                              "Archivo Narrow"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "900"
+                              }
+                      ],
+                      "stat-huge": [
+                              "40px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "900"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "900"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        @keyframes moveGrid {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(32px); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pitch-grid {
+            background-image: linear-gradient(to right, rgba(132, 147, 150, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(132, 147, 150, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+            animation: moveGrid 3s linear infinite;
+        }
+        .glow-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glow-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 218, 243, 0.3), 0 8px 10px -6px rgba(0, 218, 243, 0.2);
+            border-color: rgba(0, 218, 243, 0.6);
+            transform: translateY(-4px);
+        }
+        .stadium-light-1 {
+            animation: pulseGlow 4s ease-in-out infinite alternate;
+        }
+        .stadium-light-2 {
+            animation: pulseGlow 5s ease-in-out infinite alternate-reverse;
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.7s ease-out forwards;
+            opacity: 0;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .tilt-card {
+            transition: transform 0.4s ease-out;
+            transform-style: preserve-3d;
+        }
+        .tilt-card:hover {
+            transform: perspective(1000px) rotateX(8deg) rotateY(-8deg) scale(1.05);
+        }
+        .tilt-card-alt {
+            transition: transform 0.4s ease-out;
+            transform-style: preserve-3d;
+        }
+        .tilt-card-alt:hover {
+            transform: perspective(1000px) rotateX(8deg) rotateY(8deg) scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface-container-low dark:bg-surface-container-low border-b border-outline-variant bg-surface/80 backdrop-blur-xl">
+<div class="flex items-center gap-8">
+<div class="font-display-lg text-display-lg font-black text-primary-fixed dark:text-primary-fixed-dim tracking-tighter flex items-center gap-2">
+<img alt="KickStats Logo" class="w-8 h-8 drop-shadow-[0_0_10px_rgba(0,229,255,0.8)]" src="https://lh3.googleusercontent.com/aida/ADBb0uihC87nKlK-llCzcGIymafKziwBGhZxK-_L4LOMb6zUxlTqVZZx15ndKNEI-ZcyO5DIPHLJtUZZq8zlfazpP5JOdh9yLkyjsmXuRlhh4buZJi5UyiCf47ltu-0zWepOZ95lgxF2TeY40t30fPec8yzYfckaa3c7Uc0ufEVFcofh8u7g2MTnCDpgD8iy3NKPMaJlwFfbb3fpnL-f608mGk-6uF-aCUdvEnI8Qh8H6ttn_EwCmcwzmiz13KvA"/>
+                KickStats
+            </div>
+<div class="hidden md:flex gap-6 items-center">
+<a class="font-headline-md text-headline-md text-primary-fixed dark:text-primary-fixed-dim border-b-2 border-primary-fixed pb-1 font-bold opacity-80 scale-95 duration-150" href="#">Predictor</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors" href="#">Players</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors" href="#">Clusters</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors" href="#">Lineup</a>
+</div>
+</div>
+<div class="flex items-center gap-4 text-primary-fixed dark:text-primary-fixed-dim">
+<button class="hover:bg-surface-bright dark:hover:bg-surface-bright/20 transition-all p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">sports_soccer</span>
+</button>
+<button class="hover:bg-surface-bright dark:hover:bg-surface-bright/20 transition-all p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-surface-bright dark:hover:bg-surface-bright/20 transition-all p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</nav>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[240px] z-40 flex flex-col py-base bg-surface-container-lowest dark:bg-surface-container-lowest border-r border-outline-variant bg-gradient-to-b from-surface-container-low to-surface-container-lowest shadow-xl hidden md:flex">
+<div class="px-4 py-6 mb-4 border-b border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A close-up, high-quality portrait of a professional male analyst in a dimly lit, modern command center environment. The lighting is cinematic with subtle cool cyan glows reflecting on his face, matching the high-tech sports analytics aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7b3_RDZXOf9yggxb1ZE7vpNW5plFvaZG4D6n0tsaaD4OBV7vogDtJe50PaTOpwg5GKl3B_cjv4gT6EB-LfFq2ZuTu5kxMyGFEVIPCSOV45QxHCNCK3Inbih7OmiytAqaQKaaH3wo-WCy3zn4z7ZZtvtmC-yd532UJezgCccIYMFRzmWunsCIaScbSmfmmP6aNq-KcRCdLgh5aikMLu9BohmMgbJrJNt8hCH-9zxOfZ4IelUYgaXpYinWUJp3Y49fhScbgZHpzBn24"/>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md font-bold text-primary-fixed text-lg">Command Center</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">FIFA WC 2026</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1 px-2 font-label-caps text-label-caps">
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-all rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-high/50" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-all rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-high/50" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Analytics
+                </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-all rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-high/50" href="#">
+<span class="material-symbols-outlined">groups</span>
+                    Team Matrix
+                </a>
+<a class="bg-primary-container/20 text-primary-fixed border-l-4 border-primary-fixed flex items-center gap-3 px-4 py-3 rounded-r-lg scale-[0.98] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                    Predictor Engine
+                </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-all rounded-lg hover:bg-surface-container-high dark:hover:bg-surface-container-high/50" href="#">
+<span class="material-symbols-outlined">scoreboard</span>
+                    Match Center
+                </a>
+</nav>
+<div class="px-4 py-6 border-t border-outline-variant/30">
+<button class="w-full bg-surface-variant hover:bg-surface-bright text-primary-fixed font-label-caps text-label-caps py-2 rounded border border-primary-fixed/30 transition-colors flex items-center justify-center gap-2 mb-4">
+<span class="material-symbols-outlined text-sm">sync</span>
+                    Live Model Update
+                </button>
+<div class="flex flex-col gap-1 font-label-caps text-label-caps">
+<a class="text-on-surface-variant flex items-center gap-3 px-2 py-2 hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined text-sm">settings</span>
+                        Settings
+                    </a>
+<a class="text-on-surface-variant flex items-center gap-3 px-2 py-2 hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+                        Support
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-[240px] relative min-h-[calc(100vh-64px)] bg-[#0a1628] overflow-hidden">
+<!-- Pitch Grid Overlay -->
+<div class="absolute inset-0 z-0 overflow-hidden">
+<div class="absolute -top-[50%] -bottom-[50%] w-full pitch-grid pointer-events-none"></div>
+</div>
+<!-- Radial Glows for depth -->
+<div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary-fixed/10 rounded-full blur-[120px] pointer-events-none stadium-light-1 z-0"></div>
+<div class="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-secondary-container/5 rounded-full blur-[100px] pointer-events-none stadium-light-2 z-0"></div>
+<div class="relative z-10 max-w-container-max mx-auto p-margin-mobile md:p-margin-desktop flex flex-col gap-8">
+<!-- Matchup Hero Section -->
+<section class="flex flex-col items-center justify-center py-12 relative animate-fade-in-up">
+<div class="flex items-center justify-between w-full max-w-4xl">
+<!-- Home Team -->
+<div class="flex flex-col items-center gap-4 w-1/3 tilt-card">
+<div class="w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-primary-fixed/40 overflow-hidden shadow-[0_0_40px_rgba(0,218,243,0.25)] relative group">
+<img alt="Brazil Flag Theme" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="An abstract, high-contrast visual representation of the Brazil national football team colors. Deep greens and vibrant yellows are blending in a dynamic, smoky particle effect against a dark, pitch-black background. The style is cinematic, dramatic, and suitable for a premium sports broadcast package." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDRparl2KiSHROfz_9qOFq8EOcoQaVMlc-hkXGT0mAW8hiMgNHZlI0-4-eX67olY6Mssh97VEVU7Ot0OXbUTIdVEMvopFHPtRey0L47jGBs_JiyqHVkT5xbgsi-_3JdhIcjI8JOlCuQa_PYC9ZJX5eHq_yxww9BpUkFVyQy8jzArUJ8EM8rWOYeymlAk_dn-dLIJNzZQwv0etgYHwJnDV8AwLmZ8fmE5al1xwCiZLHMulfAgFD2rHc7XNXWhEJbh6yfGRy52rtfOLT"/>
+<div class="absolute inset-0 border-[4px] border-primary-fixed rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+</div>
+<div class="text-center">
+<h1 class="font-display-lg text-display-lg font-black text-on-background uppercase tracking-tight drop-shadow-lg">BRAZIL</h1>
+<p class="font-body-md text-body-md text-on-surface-variant font-medium mt-1">52.4% Win Prob</p>
+</div>
+</div>
+<!-- VS Center -->
+<div class="flex flex-col items-center justify-center w-1/3 relative z-20">
+<div class="text-secondary-container font-display-lg text-[72px] font-black italic tracking-tighter drop-shadow-[0_0_25px_rgba(255,219,60,0.8)] mb-8 animate-pulse">
+                                VS
+                            </div>
+<button class="bg-primary-fixed/90 hover:bg-surface-tint text-on-primary-fixed font-headline-md text-[18px] px-8 py-4 rounded font-bold shadow-[0_0_25px_rgba(0,218,243,0.5)] hover:shadow-[0_0_40px_rgba(0,218,243,0.8)] hover:scale-110 transition-all duration-300 uppercase tracking-wide border border-primary-fixed/50 backdrop-blur-md">
+                                Predict Match
+                            </button>
+<!-- Result Badge (Shown as requested) -->
+<div class="absolute -bottom-16 bg-[#00ff87]/15 border border-[#00ff87] text-[#00ff87] font-headline-md text-[20px] px-6 py-2 rounded shadow-[0_0_25px_rgba(0,255,135,0.4)] animate-pulse backdrop-blur-md">
+                                HOME WIN
+                            </div>
+</div>
+<!-- Away Team -->
+<div class="flex flex-col items-center gap-4 w-1/3 tilt-card-alt">
+<div class="w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-outline-variant overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.6)] relative group opacity-80 hover:opacity-100 transition-opacity duration-500">
+<img alt="France Flag Theme" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="An abstract, high-contrast visual representation of the France national football team colors. Deep blues, stark whites, and vivid reds swirl together in a dynamic, fluid motion against a very dark, moody background. The lighting highlights the textures, creating a premium, intense sports atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2_PiRCUwBTTnY--ec8zuWP8-I30n6cT_LOL2R4vRc3YRISWyVFCLn067Y8_iqSfGEc8p-nYfN7qClUeQNRzEi0jNGBwTcrSoPDtxPp05UUf4dLeFwKvCU3SSAiY1MWgd8O4kTSqGO0F_oLWDzobBajef27N3YPDAPj9W5g2IcaKYazpJX3M_MQL_nFcLE-w5f2cQ_7x7L8jAC1slixGNUN45crbzIG-Me9Nxq-LIFZGfYGbpy5uOqUOkP8X_RklU-IcoWPD-FaTvv"/>
+</div>
+<div class="text-center">
+<h1 class="font-display-lg text-display-lg font-black text-on-surface-variant uppercase tracking-tight drop-shadow-lg">FRANCE</h1>
+<p class="font-body-md text-body-md text-on-surface-variant/60 mt-1">47.6% Win Prob</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Confidence Bars -->
+<section class="max-w-4xl mx-auto w-full bg-surface-container-high/40 p-6 rounded-lg border border-outline-variant/30 backdrop-blur-md mt-8 animate-fade-in-up delay-100 shadow-xl">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">equalizer</span> Model Confidence Distribution
+                    </h3>
+<div class="w-full h-8 flex rounded overflow-hidden shadow-inner bg-surface-container-lowest/80 backdrop-blur-sm">
+<div class="h-full bg-primary-fixed border-r border-background/50 flex items-center justify-center" style="width: 52%;">
+<span class="font-headline-md text-[14px] text-on-primary-fixed font-bold">WIN 52%</span>
+</div>
+<div class="h-full bg-outline-variant border-r border-background/50 flex items-center justify-center" style="width: 20%;">
+<span class="font-headline-md text-[14px] text-on-surface font-bold">DRAW 20%</span>
+</div>
+<div class="h-full bg-[#ffb4ab]/80 flex items-center justify-center" style="width: 28%;">
+<span class="font-headline-md text-[14px] text-[#690005] font-bold">LOSS 28%</span>
+</div>
+</div>
+</section>
+<!-- Stats Row Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full animate-fade-in-up delay-200">
+<div class="bg-[#0d1f3c]/60 border border-primary-fixed/30 rounded p-6 glow-card flex flex-col justify-between backdrop-blur-md shadow-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">Home Win Rate</p>
+<p class="font-stat-huge text-stat-huge text-primary-fixed drop-shadow-[0_0_10px_rgba(0,218,243,0.3)]">75%</p>
+<div class="w-full bg-surface-container-lowest h-1 mt-4 rounded">
+<div class="bg-primary-fixed h-full rounded shadow-[0_0_8px_rgba(0,218,243,0.8)]" style="width: 75%;"></div>
+</div>
+</div>
+<div class="bg-[#0d1f3c]/60 border border-primary-fixed/30 rounded p-6 glow-card flex flex-col justify-between backdrop-blur-md shadow-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">Home Avg Goals</p>
+<p class="font-stat-huge text-stat-huge text-on-background">2.4</p>
+<p class="font-body-md text-[12px] text-on-surface-variant mt-2 text-right">xG: 2.1</p>
+</div>
+<div class="bg-[#0d1f3c]/60 border border-outline-variant/30 rounded p-6 glow-card hover:border-primary-fixed/40 transition-colors flex flex-col justify-between backdrop-blur-md shadow-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">Away Win Rate</p>
+<p class="font-stat-huge text-stat-huge text-on-surface-variant">60%</p>
+<div class="w-full bg-surface-container-lowest h-1 mt-4 rounded">
+<div class="bg-outline-variant h-full rounded" style="width: 60%;"></div>
+</div>
+</div>
+<div class="bg-[#0d1f3c]/60 border border-outline-variant/30 rounded p-6 glow-card hover:border-primary-fixed/40 transition-colors flex flex-col justify-between backdrop-blur-md shadow-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">Away Avg Goals</p>
+<p class="font-stat-huge text-stat-huge text-on-surface-variant">1.8</p>
+<p class="font-body-md text-[12px] text-on-surface-variant mt-2 text-right">xG: 1.5</p>
+</div>
+</section>
+<!-- Head-to-Head Table -->
+<section class="bg-surface-container-high/60 backdrop-blur-md rounded border border-outline-variant/30 overflow-hidden mt-4 animate-fade-in-up delay-300 shadow-xl">
+<div class="px-6 py-4 border-b border-outline-variant/30 bg-surface-container-highest/80 flex justify-between items-center backdrop-blur-sm">
+<h3 class="font-headline-md text-[20px] text-on-background font-bold">Head-to-Head History</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant bg-surface-container-lowest/80 px-3 py-1 rounded backdrop-blur-sm">Last 5 Matches</span>
+</div>
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left font-body-md text-sm border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/20 text-on-surface-variant bg-surface-container-lowest/40 font-label-caps text-label-caps">
+<th class="px-6 py-3 font-semibold">Date</th>
+<th class="px-6 py-3 font-semibold">Tournament</th>
+<th class="px-6 py-3 font-semibold">Home</th>
+<th class="px-6 py-3 font-semibold">Score</th>
+<th class="px-6 py-3 font-semibold">Away</th>
+<th class="px-6 py-3 font-semibold text-right">Result</th>
+</tr>
+</thead>
+<tbody class="text-on-background">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-bright/40 transition-colors">
+<td class="px-6 py-4 text-on-surface-variant">10 Dec 2022</td>
+<td class="px-6 py-4">World Cup</td>
+<td class="px-6 py-4 font-bold text-primary-fixed drop-shadow-[0_0_5px_rgba(0,218,243,0.5)]">Brazil</td>
+<td class="px-6 py-4 font-bold">2 - 1</td>
+<td class="px-6 py-4 text-on-surface-variant">France</td>
+<td class="px-6 py-4 text-right"><span class="inline-block w-3 h-3 rounded-full bg-[#00ff87] shadow-[0_0_8px_#00ff87]"></span></td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-bright/40 transition-colors bg-surface-container-lowest/30">
+<td class="px-6 py-4 text-on-surface-variant">15 Jun 2019</td>
+<td class="px-6 py-4">Friendly</td>
+<td class="px-6 py-4 text-on-surface-variant">France</td>
+<td class="px-6 py-4 font-bold">1 - 1</td>
+<td class="px-6 py-4 font-bold">Brazil</td>
+<td class="px-6 py-4 text-right"><span class="inline-block w-3 h-3 rounded-full bg-secondary-container shadow-[0_0_8px_#ffdb3c]"></span></td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-bright/40 transition-colors">
+<td class="px-6 py-4 text-on-surface-variant">09 Jun 2015</td>
+<td class="px-6 py-4">Friendly</td>
+<td class="px-6 py-4 font-bold">Brazil</td>
+<td class="px-6 py-4 font-bold">0 - 3</td>
+<td class="px-6 py-4 text-on-surface-variant font-bold">France</td>
+<td class="px-6 py-4 text-right"><span class="inline-block w-3 h-3 rounded-full bg-error shadow-[0_0_8px_#ffb4ab]"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

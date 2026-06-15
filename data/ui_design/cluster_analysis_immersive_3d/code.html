@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cluster Analysis - KickStats</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#9cf0ff",
+                    "inverse-on-surface": "#2a3233",
+                    "on-tertiary-fixed": "#251a00",
+                    "inverse-surface": "#dce4e5",
+                    "on-tertiary": "#3e2e00",
+                    "on-secondary": "#3a3000",
+                    "surface-container-low": "#151d1e",
+                    "surface-tint": "#00daf3",
+                    "on-primary-container": "#00626e",
+                    "on-primary": "#00363d",
+                    "on-primary-fixed-variant": "#004f58",
+                    "surface-dim": "#0d1516",
+                    "primary-fixed-dim": "#00daf3",
+                    "on-surface-variant": "#bac9cc",
+                    "surface-container-high": "#242b2d",
+                    "on-secondary-container": "#725f00",
+                    "on-secondary-fixed": "#221b00",
+                    "error-container": "#93000a",
+                    "surface-container-lowest": "#080f11",
+                    "surface-container-highest": "#2e3638",
+                    "inverse-primary": "#006875",
+                    "error": "#ffb4ab",
+                    "background": "#050b14", /* Darker navy background */
+                    "surface-bright": "#333a3c",
+                    "on-tertiary-container": "#6f5500",
+                    "primary-container": "#00e5ff",
+                    "outline": "#849396",
+                    "secondary-fixed": "#ffe16d",
+                    "secondary-container": "#ffdb3c",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdf96",
+                    "surface": "#0a111a",
+                    "secondary": "#fff9ef",
+                    "on-error": "#690005",
+                    "surface-container": "#121d2b",
+                    "surface-variant": "#1c2a3d",
+                    "tertiary-fixed-dim": "#f3bf26",
+                    "on-surface": "#dce4e5",
+                    "tertiary-container": "#fec931",
+                    "tertiary": "#ffeac0",
+                    "on-background": "#dce4e5",
+                    "secondary-fixed-dim": "#e9c400",
+                    "on-secondary-fixed-variant": "#544600",
+                    "outline-variant": "#3b494c",
+                    "primary": "#c3f5ff",
+                    "on-primary-fixed": "#001f24",
+                    "on-tertiary-fixed-variant": "#594400"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "base": "8px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-md": ["Archivo Narrow"],
+                    "headline-lg": ["Archivo Narrow"],
+                    "stat-huge": ["Archivo Narrow"],
+                    "display-lg": ["Archivo Narrow"],
+                    "label-caps": ["Archivo Narrow"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "900"}],
+                    "stat-huge": ["40px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "900"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "900"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .pitch-pattern {
+            background-color: #050b14;
+            background-image: linear-gradient(to right, rgba(0, 218, 243, 0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 218, 243, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            position: relative;
+        }
+        .pitch-pattern::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%), rgba(0, 218, 243, 0.15) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(60px) scale(0.95) perspective(1000px) rotateX(5deg); }
+            to { opacity: 1; transform: translateY(0) scale(1) perspective(1000px) rotateX(0deg); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        
+        .glass-panel {
+            background: rgba(18, 29, 43, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            transform-style: preserve-3d;
+        }
+        
+        .energy-core {
+            position: relative;
+        }
+        .energy-core::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: inherit;
+            filter: blur(8px);
+            z-index: -1;
+            opacity: 0.7;
+        }
+        
+        .glow-red { box-shadow: 0 0 20px rgba(255, 180, 171, 0.4); }
+        .glow-red .energy-core::after { background: #ffb4ab; }
+        
+        .glow-cyan { box-shadow: 0 0 20px rgba(156, 240, 255, 0.4); }
+        .glow-cyan .energy-core::after { background: #9cf0ff; }
+        
+        .glow-gold { box-shadow: 0 0 20px rgba(255, 223, 150, 0.4); }
+        .glow-gold .energy-core::after { background: #ffdf96; }
+        
+        .glow-gray { box-shadow: 0 0 20px rgba(132, 147, 150, 0.4); }
+        .glow-gray .energy-core::after { background: #849396; }
+
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen pitch-pattern flex">
+<!-- Side Navigation Shell -->
+<nav class="hidden md:flex flex-col glass-panel dark:glass-panel border-r border-outline-variant/30 shadow-2xl fixed left-0 top-0 h-screen w-[240px] z-40 py-base">
+<div class="px-margin-desktop py-4 mb-4 relative z-10">
+<span class="font-headline-md text-headline-md font-bold text-primary-fixed drop-shadow-[0_0_8px_rgba(156,240,255,0.5)]">Command Center</span>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-1 opacity-70">FIFA WC 2026</p>
+</div>
+<div class="flex-grow flex flex-col gap-2 relative z-10">
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high/50 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high/50 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+<span class="font-label-caps text-label-caps">Analytics</span>
+</a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high/50 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">groups</span>
+<span class="font-label-caps text-label-caps">Team Matrix</span>
+</a>
+<a class="bg-primary-container/10 text-primary-fixed border-l-4 border-primary-fixed flex items-center gap-3 px-4 py-3 shadow-[inset_20px_0_40px_-20px_rgba(156,240,255,0.2)] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-label-caps text-label-caps drop-shadow-[0_0_4px_rgba(156,240,255,0.5)]">Predictor Engine</span>
+</a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high/50 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">scoreboard</span>
+<span class="font-label-caps text-label-caps">Match Center</span>
+</a>
+</div>
+<div class="px-4 mt-auto relative z-10">
+<button class="w-full bg-gradient-to-r from-primary-fixed to-surface-tint text-on-primary-fixed font-label-caps text-label-caps py-2 rounded uppercase hover:shadow-[0_0_15px_rgba(0,218,243,0.5)] transition-all">Live Model Update</button>
+</div>
+<div class="mt-4 flex flex-col gap-2 relative z-10 mb-4">
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high/50 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+<a class="text-on-surface-variant flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high/50 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">help</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+</div>
+</nav>
+<!-- Top Navigation Shell (Mobile) -->
+<header class="md:hidden glass-panel border-b border-outline-variant/30 fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16">
+<span class="font-display-lg text-display-lg font-black text-primary-fixed dark:text-primary-fixed-dim tracking-tighter drop-shadow-[0_0_8px_rgba(156,240,255,0.5)]">KickStats</span>
+<div class="flex gap-4 text-primary-fixed dark:text-primary-fixed-dim">
+<span class="material-symbols-outlined">menu</span>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 md:ml-[240px] pt-20 md:pt-margin-desktop px-margin-mobile md:px-margin-desktop pb-24 max-w-container-max w-full mx-auto relative z-10">
+<header class="mb-8 border-b border-outline-variant/30 pb-4 animate-slide-up">
+<h1 class="font-headline-lg text-headline-lg text-primary-fixed uppercase tracking-tight drop-shadow-[0_0_12px_rgba(156,240,255,0.6)]">HOW CLUSTERING WORKS</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">Deconstructing player profiles using machine learning.</p>
+</header>
+<!-- Info Box -->
+<section class="glass-panel rounded-xl p-6 mb-10 border-l-4 border-l-tertiary-fixed relative overflow-hidden animate-slide-up delay-100 hover:shadow-[0_8px_32px_0_rgba(243,191,38,0.15)] transition-all duration-500">
+<div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transform rotate-12 scale-110">
+<span class="material-symbols-outlined text-stat-huge drop-shadow-[0_0_30px_rgba(255,223,150,0.8)]" style="font-size: 160px; color: var(--tertiary-fixed)">memory</span>
+</div>
+<div class="relative z-10 flex flex-col md:flex-row gap-6 items-start">
+<div class="flex-shrink-0 bg-surface-container-high/50 backdrop-blur-md p-4 rounded-full border border-tertiary-fixed/40 energy-core shadow-[0_0_15px_rgba(255,223,150,0.3)]">
+<span class="material-symbols-outlined text-tertiary-fixed text-[32px] drop-shadow-[0_0_8px_rgba(255,223,150,0.8)]">science</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-white mb-2 drop-shadow-md">Algorithm: KMeans (k=4)</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 leading-relaxed">
+                        We group players based on their statistical output over the last 38 matches. Features include <strong class="text-white drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]">Goals, Assists, xG (Expected Goals), Pass Completion %, and Defensive Actions</strong>.
+                    </p>
+<div class="inline-block bg-primary-fixed/10 px-3 py-1 rounded font-label-caps text-label-caps text-primary-fixed border border-primary-fixed/30 backdrop-blur-sm shadow-[0_0_10px_rgba(156,240,255,0.2)]">
+<span class="material-symbols-outlined text-[14px] align-middle mr-1">data_object</span>
+                        StandardScaler Applied
+                    </div>
+</div>
+</div>
+</section>
+<!-- Clusters Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 perspective-[1000px]">
+<!-- Cluster 1: Clinical Striker -->
+<article class="glass-panel rounded-xl overflow-hidden relative group hover:glow-red transition-all duration-500 hover:-translate-y-2 animate-slide-up delay-200">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-error shadow-[0_0_15px_rgba(255,180,171,0.8)]"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-error/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="p-6 relative z-10">
+<header class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high/60 border border-error/40 flex items-center justify-center text-[24px] energy-core shadow-[0_0_15px_rgba(255,180,171,0.2)] group-hover:shadow-[0_0_25px_rgba(255,180,171,0.6)] transition-all">
+                                🎯
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-white uppercase tracking-wider drop-shadow-[0_0_5px_rgba(255,180,171,0.4)]">Clinical Striker</h3>
+<p class="font-label-caps text-label-caps text-error mt-1 font-bold tracking-widest drop-shadow-[0_0_4px_rgba(255,180,171,0.5)]">15% of Player Pool</p>
+</div>
+</div>
+</header>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 h-12 leading-relaxed">
+                        High-volume shooters with exceptional conversion rates. Minimal defensive contribution, focused entirely on the final third.
+                    </p>
+<div class="grid grid-cols-4 gap-3 mb-6">
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-error/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">0.7</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Avg Gls</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-error/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">0.6</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Avg xG</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-error/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">3.2</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Shots/90</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-error/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">12</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Touches</span>
+</div>
+</div>
+<div class="bg-error/10 border-l-2 border-error p-4 rounded-r-lg backdrop-blur-md">
+<span class="font-label-caps text-label-caps text-error block mb-1 font-bold drop-shadow-[0_0_2px_rgba(255,180,171,0.5)]">WHY THIS MATTERS</span>
+<p class="font-body-md text-body-md text-white/90 text-[14px]">Crucial for breaking deadlocks against low-block defenses. High value in knock-out stages.</p>
+</div>
+</div>
+</article>
+<!-- Cluster 2: Playmaker -->
+<article class="glass-panel rounded-xl overflow-hidden relative group hover:glow-cyan transition-all duration-500 hover:-translate-y-2 animate-slide-up delay-300">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-primary-fixed shadow-[0_0_15px_rgba(156,240,255,0.8)]"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="p-6 relative z-10">
+<header class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high/60 border border-primary-fixed/40 flex items-center justify-center text-[24px] energy-core shadow-[0_0_15px_rgba(156,240,255,0.2)] group-hover:shadow-[0_0_25px_rgba(156,240,255,0.6)] transition-all">
+                                🪄
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-white uppercase tracking-wider drop-shadow-[0_0_5px_rgba(156,240,255,0.4)]">Playmaker</h3>
+<p class="font-label-caps text-label-caps text-primary-fixed mt-1 font-bold tracking-widest drop-shadow-[0_0_4px_rgba(156,240,255,0.5)]">22% of Player Pool</p>
+</div>
+</div>
+</header>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 h-12 leading-relaxed">
+                        Elite vision and passing range. High progressive passes and expected assists (xA). The creative engine of the team.
+                    </p>
+<div class="grid grid-cols-4 gap-3 mb-6">
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-primary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">0.4</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Avg Ast</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-primary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">0.35</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Avg xA</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-primary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">8.5</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Prog Pass</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-primary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">88%</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Pass Cmp</span>
+</div>
+</div>
+<div class="bg-primary-fixed/10 border-l-2 border-primary-fixed p-4 rounded-r-lg backdrop-blur-md">
+<span class="font-label-caps text-label-caps text-primary-fixed block mb-1 font-bold drop-shadow-[0_0_2px_rgba(156,240,255,0.5)]">WHY THIS MATTERS</span>
+<p class="font-body-md text-body-md text-white/90 text-[14px]">Dictates tempo. Essential for transitioning from defense to attack and creating high-quality chances.</p>
+</div>
+</div>
+</article>
+<!-- Cluster 3: Workhorse -->
+<article class="glass-panel rounded-xl overflow-hidden relative group hover:glow-gold transition-all duration-500 hover:-translate-y-2 animate-slide-up delay-400">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-tertiary-fixed shadow-[0_0_15px_rgba(255,223,150,0.8)]"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary-fixed/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="p-6 relative z-10">
+<header class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high/60 border border-tertiary-fixed/40 flex items-center justify-center text-[24px] energy-core shadow-[0_0_15px_rgba(255,223,150,0.2)] group-hover:shadow-[0_0_25px_rgba(255,223,150,0.6)] transition-all">
+                                🛡️
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-white uppercase tracking-wider drop-shadow-[0_0_5px_rgba(255,223,150,0.4)]">Workhorse</h3>
+<p class="font-label-caps text-label-caps text-tertiary-fixed mt-1 font-bold tracking-widest drop-shadow-[0_0_4px_rgba(255,223,150,0.5)]">35% of Player Pool</p>
+</div>
+</div>
+</header>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 h-12 leading-relaxed">
+                        High stamina, relentless pressing. Excels in defensive actions, tackles won, and covering ground in the middle third.
+                    </p>
+<div class="grid grid-cols-4 gap-3 mb-6">
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-tertiary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">4.2</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Tckls/90</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-tertiary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">2.1</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Int/90</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-tertiary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">11.5</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Dist(km)</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-tertiary-fixed/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">65%</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Duels Won</span>
+</div>
+</div>
+<div class="bg-tertiary-fixed/10 border-l-2 border-tertiary-fixed p-4 rounded-r-lg backdrop-blur-md">
+<span class="font-label-caps text-label-caps text-tertiary-fixed block mb-1 font-bold drop-shadow-[0_0_2px_rgba(255,223,150,0.5)]">WHY THIS MATTERS</span>
+<p class="font-body-md text-body-md text-white/90 text-[14px]">Provides defensive stability and wins possession back rapidly. The foundation of high-pressing systems.</p>
+</div>
+</div>
+</article>
+<!-- Cluster 4: Rotation -->
+<article class="glass-panel rounded-xl overflow-hidden relative group hover:glow-gray transition-all duration-500 hover:-translate-y-2 animate-slide-up delay-400" style="animation-delay: 500ms;">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-outline shadow-[0_0_15px_rgba(132,147,150,0.8)]"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-outline/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="p-6 relative z-10">
+<header class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high/60 border border-outline/40 flex items-center justify-center text-[24px] energy-core shadow-[0_0_15px_rgba(132,147,150,0.2)] group-hover:shadow-[0_0_25px_rgba(132,147,150,0.6)] transition-all">
+                                🔄
+                            </div>
+<div>
+<h3 class="font-headline-md text-headline-md text-white uppercase tracking-wider drop-shadow-[0_0_5px_rgba(132,147,150,0.4)]">Rotation</h3>
+<p class="font-label-caps text-label-caps text-outline mt-1 font-bold tracking-widest drop-shadow-[0_0_4px_rgba(132,147,150,0.5)]">28% of Player Pool</p>
+</div>
+</div>
+</header>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 h-12 leading-relaxed">
+                        Squad players with average metrics across the board. Used primarily for depth and tactical adjustments late in games.
+                    </p>
+<div class="grid grid-cols-4 gap-3 mb-6">
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-outline/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">0.1</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Avg Gls</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-outline/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">0.1</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Avg Ast</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-outline/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">35</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Mins/App</span>
+</div>
+<div class="bg-surface-container/40 flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 backdrop-blur-sm group-hover:border-outline/30 transition-colors">
+<span class="font-stat-huge text-stat-huge text-white text-[28px] drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">2.1</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px] text-center mt-1">Rating</span>
+</div>
+</div>
+<div class="bg-outline/10 border-l-2 border-outline p-4 rounded-r-lg backdrop-blur-md">
+<span class="font-label-caps text-label-caps text-outline block mb-1 font-bold drop-shadow-[0_0_2px_rgba(132,147,150,0.5)]">WHY THIS MATTERS</span>
+<p class="font-body-md text-body-md text-white/90 text-[14px]">Essential for tournament longevity. Managing their minutes preserves the output of elite starters.</p>
+</div>
+</div>
+</article>
+</div>
+</main>
+<script>
+    document.addEventListener('mousemove', (e) => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+      document.body.style.setProperty('--mouse-x', x);
+      document.body.style.setProperty('--mouse-y', y);
+    });
+</script>
+</body></html>

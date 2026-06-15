@@ -1,9 +1,29 @@
-# Data files
-data/
-*.csv
+# ==============================================
+# RUNTIME CRITICAL - These ARE committed to git
+# (needed for Streamlit Cloud to run the app)
+# ==============================================
+# model.pkl, lineup_outcome_model.pkl, lineup_goals_model.pkl
+# features.csv, player_clustered.csv, player_features.csv, team_profiles.csv
+# data/master_players.csv, data/results.csv, data/team_profiles.csv
 
-# Models
-*.pkl
+# =============================================
+# RAW TRAINING DATA - Excluded (too large for GitHub)
+# These are only needed to retrain models locally
+# =============================================
+data/game_lineups.csv
+data/game_events.csv
+data/appearances.csv
+data/player_valuations.csv
+data/games.csv
+data/players.csv
+data/transfers.csv
+data/club_games.csv
+data/clubs.csv
+data/competitions.csv
+data/countries.csv
+data/female_players.csv
+data/all_players.csv
+data/male_players.csv
 
 # Virtual environment
 venv/
@@ -12,11 +32,9 @@ env/
 # Python cache
 __pycache__/
 *.pyc
+*.pyo
 
 # IDEs and Editors
 .vscode/
 .idea/
 .DS_Store
-
-# Streamlit config (optional)
-.streamlit/
