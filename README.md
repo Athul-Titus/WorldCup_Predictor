@@ -1,5 +1,6 @@
 # ⚽ KickStats: FIFA World Cup 2026 Command Center
 
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Streamlit%20Cloud-FF4B4B?style=for-the-badge)](https://worldcup-predictor-athul.streamlit.app/)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/UI-Streamlit-FF4B4B.svg)](https://streamlit.io/)
 [![ML Framework](https://img.shields.io/badge/ML-XGBoost-1E90FF.svg)](https://xgboost.readthedocs.io/)
@@ -62,6 +63,14 @@ flowchart TD
 3. **Player Scout (Transfermarkt & EA FC 25):** Provides customizable player profile cards detailing EA FC25 attributes (Pace, Passing, Defending, Dribbling, Shooting, Physicality) alongside career goals, assists, and market value.
 4. **Cluster Analysis (Unsupervised Learning):** Uses K-Means clustering to partition squad players into four key player archetypes: *Clinical Striker*, *Playmaker*, *Workhorse*, and *Rotation Player*.
 5. **Top Charts (Rankings):** Showcases data-driven dashboards of top-rated players, squad depths, valuations, and head-to-head match summaries.
+
+---
+
+## 🌐 Live Demo
+
+> **Try it now — no installation required!**
+> 
+> 👉 **[https://worldcup-predictor-athul.streamlit.app/](https://worldcup-predictor-athul.streamlit.app/)**
 
 ---
 
